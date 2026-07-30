@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تطبيق الشات والمكالمات (صوت وفيديو)</title>
+  
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+    body { background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .chat-container { width: 100%; max-width: 480px; height: 95vh; background: #fff; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; }
+    
+    /* Header */
+    .header { background: #075e54; color: white; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; }
+    .header h2 { font-size: 16px; }
+    .buttons-group { display: flex; gap: 6px; }
+    .call-btn { border: none; color: white; padding: 6px 10px; border-radius: 15px; cursor: pointer; font-size: 13px; font-weight: bold; }
+    .voice-btn { background: #25d366; }
+    .video-btn { background: #128c7e; }
+    
+    /* Video Box (مخفي افتراضياً، يظهر عند مكالمة الفيديو) */
+    #video-container { display: none; height: 180px; background: #000; position: relative; }
+    #local-video, #remote-video { width: 50%; height: 100%; display: inline-block; object-fit: cover; }
+
+    /* شريط حالة المكالمة الصوتية */
+    #call-status { display: none; background: #128c7e; color: white; text-align: center; padding: 8px; font-size: 14px; font-weight: bold; }
+    
+    /* Messages Area */
+    .messages-box { flex: 1; padding: 15px; overflow-y: auto; background: #e5ddd5; display: flex; flex-direction: column; gap: 10px; }
+    .message { max-width: 75%; padding: 8px 12px; border-radius: 8px; font-size: 14px; word-wrap: break-word; }
+    .message.sent { background: #dcf8c6; align-self: flex-end; }
+    .message.received { background: #fff; align-self: flex-start; }
+    
+    /* Input Area */
+    .input-box { display: flex; padding: 10px; background: #fff; border-top: 1px solid #ccc; }
+    .input-box input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; outline: none; margin-left: 8px; }
+    .input-box button { background: #075e54; color: white; border: none; padding: 10px 18px; border-radius: 50%; cursor: pointer; }
+  </style>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <!-- Agora RTC SDK -->
+  <script src="https://download.agora.io/sdk/web/AgoraRTC_N-4.20.0.js"></script>
+</head>
+<body>
+
+<div class="chat-container">
+  <!-- شريط العنوان وأزرار الاتصال -->
+  <div class="header">
+    <h2>شات ومكالمات</h2>
+    <div class="buttons-group">
+      <button class="call-btn voice-btn" id="voiceCallBtn" onclick="startCall('audio')">📞 صوت</button>
+      <button class="call-btn video-btn" id="videoCallBtn" onclick="startCall('video')">📹 فيديو</button>
+    </div>
+  </div>
+
+  <!-- شاشة الفيديو -->
+  <div id="video-container">
+    <div id="local-video"></div>
+    <div id="remote-video"></div>
+  </div>
+
+  <!-- حالة المكالمة الصوتية -->
+  <div id="call-status">🎙️ جارٍ الاتصال الصوتي...</div>
+
+  <!-- صندوق الرسائل -->
+  <div class="messages-box" id="messagesBox"></div>
+
+  <!-- صندوق الكتابة -->
+  <div class="input-box">
+    <input type="text" id="messageInput" placeholder="اكتب رسالة..." onkeypress="handleKeyPress(event)">
+    <button onclick="sendMessage()">➤</button>
+  </div>
+</div>
+
+<script>
+  // إعدادات Firebase الخاصة بك
+  const firebaseConfig = {
+    apiKey: "AIzaSyAIwD3ieFkZh53Us_GCNz6nos-wetw-QAw",
+    authDomain: "chatapppr-e8c2c.firebaseapp.com",
+    databaseURL: "https://chatapppr-e8c2c-default-rtdb.firebaseio.com",
+    projectId: "chatapppr-e8c2c",
+    storageBucket: "chatapppr-e8c2c.firebasestorage.app",
+    messagingSenderId: "103184004945",
+    appId: "1:103184004945:web:666285ddf537dfa3b94570",
+    measurementId: "G-Z2GMXKNK2T"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const messagesRef = db.ref("messages");
+  const userId = "User_" + Math.floor(Math.random() * 1000);
+
+  // إرسال وقراءة الرسائل
+  function sendMessage() {
+    const input = document.getElementById("messageInput");
+    const text = input.value.trim();
+    if (text !== "") {
+      messagesRef.push({ sender: userId, text: text, timestamp: Date.now() });
+      input.value = "";
+    }
+  }
+
+  function handleKeyPress(e) {
+    if (e.key === "Enter") sendMessage();
+  }
+
+  messagesRef.on("child_added", (snapshot) => {
+    const data = snapshot.val();
+    const messagesBox = document.getElementById("messagesBox");
+    const msgDiv = document.createElement("div");
+    msgDiv.classList.add("message");
+    msgDiv.classList.add(data.sender === userId ? "sent" : "received");
+    msgDiv.innerText = data.text;
+    messagesBox.appendChild(msgDiv);
+    messagesBox.scrollTop = messagesBox.scrollHeight;
+  });
+
+  // إعدادات Agora المشتركة للمكالمات (صوت أو فيديو)
+  const agoraAppId = "3da115c147d54bc098d971641dd4cfae";
+  const channelName = "general_room";
+  let rtc = { client: null, localAudioTrack: null, localVideoTrack: null };
+  let inCall = false;
+  let currentCallType = null;
+
+  async function startCall(type) {
+    const voiceBtn = document.getElementById("voiceCallBtn");
+    const videoBtn = document.getElementById("videoCallBtn");
+    const videoContainer = document.getElementById("video-container");
+    const callStatus = document.getElementById("call-status");
+
+    if (!inCall) {
+      currentCallType = type;
+      inCall = true;
+
+      // تهيئة العميل في Agora
+      rtc.client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+      await rtc.client.join(agoraAppId, channelName, null, userId);
+
+      // تفعيل المسارات حسب نوع المكالمة
+      rtc.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+
+      if (type === 'video') {
+        rtc.localVideoTrack = await AgoraRTC.createCameraVideoTrack();
+        videoContainer.style.display = "flex";
+        rtc.localVideoTrack.play("local-video");
+        await rtc.client.publish([rtc.localAudioTrack, rtc.localVideoTrack]);
+        
+        videoBtn.innerText = "❌ إنهاء الفيديو";
+        videoBtn.style.background = "#e53935";
+        voiceBtn.style.display = "none"; // إخفاء زر الصوت مؤقتاً
+      } else {
+        callStatus.style.display = "block";
+        await rtc.client.publish([rtc.localAudioTrack]);
+        
+        voiceBtn.innerText = "❌ إنهاء الصوت";
+        voiceBtn.style.background = "#e53935";
+        videoBtn.style.display = "none"; // إخفاء زر الفيديو مؤقتاً
+      }
+
+      // استقبال الطرف الآخر (صوت أو فيديو)
+      rtc.client.on("user-published", async (user, mediaType) => {
+        await rtc.client.subscribe(user, mediaType);
+        if (mediaType === "audio") {
+          user.audioTrack.play();
+        }
+        if (mediaType === "video" && currentCallType === 'video') {
+          user.videoTrack.play("remote-video");
+        }
+      });
+
+    } else {
+      // إنهاء المكالمة وإعادة الأزرار لوضعها الطبيعي
+      if (rtc.localAudioTrack) rtc.localAudioTrack.close();
+      if (rtc.localVideoTrack) rtc.localVideoTrack.close();
+      if (rtc.client) await rtc.client.leave();
+
+      videoContainer.style.display = "none";
+      callStatus.style.display = "none";
+
+      voiceBtn.innerText = "📞 صوت";
+      voiceBtn.style.background = "#25d366";
+      voiceBtn.style.display = "block";
+
+      videoBtn.innerText = "📹 فيديو";
+      videoBtn.style.background = "#128c7e";
+      videoBtn.style.display = "block";
+
+      inCall = false;
+      currentCallType = null;
+    }
+  }
+</script>
+
+</body>
+</html>
