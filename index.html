@@ -2,48 +2,396 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تطبيق شات ومكالمات خاصة (1-على-1)</title>
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>واتساب خاص - محادثات ومكالمات مشفرة</title>
+
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
-    body { background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; }
-    .chat-container { width: 100%; max-width: 480px; height: 95vh; background: #fff; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    body { 
+      background-color: #0b1419; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      height: 100vh; 
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+    }
     
-    /* Header Bar */
-    .header { background: #075e54; color: white; padding: 12px 15px; display: flex; flex-direction: column; gap: 8px; }
+    .chat-container { 
+      width: 100%; 
+      max-width: 500px; 
+      height: 100vh; 
+      max-height: 900px;
+      background: #111b21; 
+      display: flex; 
+      flex-direction: column; 
+      box-shadow: 0 0 40px rgba(0,0,0,0.7); 
+      overflow: hidden; 
+      position: relative;
+      border-radius: 0;
+    }
+
+    /* ===== HEADER ===== */
+    .header { 
+      background: #1f2c33; 
+      padding: 10px 16px; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 6px; 
+      border-bottom: 1px solid #2a3b44;
+      flex-shrink: 0;
+    }
     .header-top { display: flex; justify-content: space-between; align-items: center; }
-    .header h2 { font-size: 15px; }
-    .my-id-badge { background: #128c7e; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+    .header-title { display: flex; align-items: center; gap: 8px; }
+    .header-title h2 { 
+      font-size: 18px; 
+      font-weight: 600; 
+      color: #e9edef; 
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-title .whatsapp-icon { 
+      color: #25d366; 
+      font-size: 22px;
+      font-weight: 700;
+    }
     
-    /* Private Peer Target Area */
-    .peer-selector { display: flex; gap: 6px; background: rgba(255, 255, 255, 0.15); padding: 6px; border-radius: 8px; }
-    .peer-selector input { flex: 1; border: none; padding: 6px 10px; border-radius: 4px; font-size: 13px; outline: none; text-align: center; }
-    .peer-selector button { border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; background: #25d366; color: white; font-size: 12px; }
+    .my-id-badge { 
+      background: #25d366; 
+      padding: 4px 14px; 
+      border-radius: 20px; 
+      font-size: 12px; 
+      font-weight: 700; 
+      color: #111b21;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 2px 8px rgba(37,211,102,0.3);
+    }
+    .my-id-badge span { font-weight: 800; letter-spacing: 0.5px; }
+    
+    .header-icons { display: flex; gap: 6px; align-items: center; }
+    .icon-btn { 
+      background: rgba(255,255,255,0.08); 
+      border: none; 
+      color: #aebac1; 
+      width: 34px; 
+      height: 34px; 
+      border-radius: 50%; 
+      cursor: pointer; 
+      font-size: 16px; 
+      display:flex; 
+      align-items:center; 
+      justify-content:center;
+      transition: all 0.2s;
+    }
+    .icon-btn:hover { background: rgba(255,255,255,0.15); }
 
-    /* Action Buttons Group */
-    .buttons-group { display: flex; gap: 6px; justify-content: flex-end; margin-top: 4px; }
-    .call-btn { border: none; color: white; padding: 6px 12px; border-radius: 15px; cursor: pointer; font-size: 13px; font-weight: bold; }
+    /* Presence */
+    .status-row { display:flex; align-items:center; gap:6px; font-size:13px; color: #aebac1; padding: 2px 0; }
+    .dot { width:10px; height:10px; border-radius:50%; background:#67747a; display:inline-block; transition: 0.3s; }
+    .dot.online { background:#25d366; box-shadow: 0 0 10px #25d36680; }
+
+    /* Peer Selector - like WhatsApp search */
+    .peer-selector { 
+      display: flex; 
+      gap: 6px; 
+      background: #2a3b44; 
+      padding: 4px; 
+      border-radius: 30px; 
+      border: 1px solid #3b4a54;
+    }
+    .peer-selector input { 
+      flex: 1; 
+      border: none; 
+      padding: 8px 16px; 
+      border-radius: 30px; 
+      font-size: 14px; 
+      outline: none; 
+      text-align: center;
+      background: transparent;
+      color: #e9edef;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+    .peer-selector input::placeholder { color: #67747a; font-weight: 400; }
+    .peer-selector input:focus { background: #334a55; }
+    .peer-selector button { 
+      border: none; 
+      padding: 8px 20px; 
+      border-radius: 30px; 
+      font-weight: 700; 
+      cursor: pointer; 
+      background: #25d366; 
+      color: #111b21; 
+      font-size: 13px;
+      transition: 0.2s;
+      white-space: nowrap;
+    }
+    .peer-selector button:hover { background: #2be87a; transform: scale(1.02); }
+
+    /* Buttons Group - WhatsApp style */
+    .buttons-group { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+    .call-btn { 
+      border: none; 
+      color: white; 
+      padding: 6px 14px; 
+      border-radius: 30px; 
+      cursor: pointer; 
+      font-size: 13px; 
+      font-weight: 700;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .call-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
     .voice-btn { background: #25d366; }
-    .video-btn { background: #128c7e; }
-    
-    /* Video Display Box */
-    #video-container { display: none; height: 180px; background: #000; position: relative; }
-    video { width: 50%; height: 100%; object-fit: cover; background: #222; }
+    .video-btn { background: #00a884; }
+    .clear-btn { background: #e53935; }
+    .mute-btn { background: #546e7a; }
+    #endCallBtn { background: #e53935; display: none; }
 
-    /* Call Status Bar */
-    #call-status { display: none; background: #128c7e; color: white; text-align: center; padding: 8px; font-size: 14px; font-weight: bold; }
+    /* Video Container */
+    #video-container { 
+      display: none; 
+      height: 200px; 
+      background: #0b1419; 
+      position: relative;
+      border-bottom: 1px solid #2a3b44;
+      flex-shrink: 0;
+    }
+    #video-container video { 
+      width: 50%; 
+      height: 100%; 
+      object-fit: cover; 
+      background: #111b21;
+    }
+    #localVideo { transform: scaleX(-1); }
+
+    /* Call Status - WhatsApp green */
+    #call-status { 
+      display: none; 
+      background: #25d366; 
+      color: #111b21; 
+      text-align: center; 
+      padding: 10px; 
+      font-size: 15px; 
+      font-weight: 700;
+      flex-shrink: 0;
+      letter-spacing: 0.5px;
+    }
+
+    /* ===== MESSAGES BOX - WhatsApp style ===== */
+    .messages-box { 
+      flex: 1; 
+      padding: 10px 16px; 
+      overflow-y: auto; 
+      background: #0b1419; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 2px;
+      scroll-behavior: smooth;
+    }
+    .messages-box::-webkit-scrollbar { width: 5px; }
+    .messages-box::-webkit-scrollbar-track { background: #1f2c33; }
+    .messages-box::-webkit-scrollbar-thumb { background: #3b4a54; border-radius: 10px; }
+
+    .date-sep { 
+      align-self: center; 
+      background: rgba(255,255,255,0.06); 
+      color: #aebac1; 
+      font-size: 12px; 
+      padding: 4px 16px; 
+      border-radius: 30px; 
+      margin: 8px 0 4px; 
+      backdrop-filter: blur(5px);
+      font-weight: 500;
+    }
     
-    /* Messages Area */
-    .messages-box { flex: 1; padding: 15px; overflow-y: auto; background: #e5ddd5; display: flex; flex-direction: column; gap: 10px; }
-    .message { max-width: 75%; padding: 8px 12px; border-radius: 8px; font-size: 14px; word-wrap: break-word; }
-    .message.sent { background: #dcf8c6; align-self: flex-end; }
-    .message.received { background: #fff; align-self: flex-start; }
+    .msg-wrap { 
+      display:flex; 
+      flex-direction:column; 
+      max-width: 82%; 
+      animation: fadeSlide 0.25s ease; 
+      margin-bottom: 2px;
+    }
+    .msg-wrap.sent-wrap { align-self:flex-end; align-items:flex-end; }
+    .msg-wrap.received-wrap { align-self:flex-start; align-items:flex-start; }
     
-    /* Input Area */
-    .input-box { display: flex; padding: 10px; background: #fff; border-top: 1px solid #ccc; }
-    .input-box input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; outline: none; margin-left: 8px; }
-    .input-box button { background: #075e54; color: white; border: none; padding: 10px 18px; border-radius: 50%; cursor: pointer; }
+    @keyframes fadeSlide { from { opacity:0; transform: translateY(10px);} to {opacity:1; transform:translateY(0);} }
+
+    /* WhatsApp message bubbles */
+    .message { 
+      padding: 8px 14px; 
+      border-radius: 12px; 
+      font-size: 14.5px; 
+      word-wrap: break-word; 
+      position:relative;
+      line-height: 1.5;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .message.sent { 
+      background: #005c4b; 
+      color: #e9edef;
+      border-bottom-right-radius: 4px;
+    }
+    .message.received { 
+      background: #1f2c33; 
+      color: #e9edef;
+      border-bottom-left-radius: 4px;
+    }
+    .message img.chat-img { 
+      max-width: 200px; 
+      border-radius: 8px; 
+      display:block; 
+      margin-top: 6px; 
+      cursor:pointer; 
+      border: 1px solid #2a3b44;
+    }
+    .message a.chat-link { color: #53bdeb; font-weight:600; word-break:break-all; text-decoration: underline; }
+    .link-preview { 
+      border: 1px solid #2a3b44; 
+      border-radius: 10px; 
+      padding: 8px 10px; 
+      margin-top: 6px; 
+      background: #1a262d; 
+      font-size: 12px; 
+      color: #aebac1;
+    }
+
+    .msg-meta { 
+      font-size: 10px; 
+      color: #67747a; 
+      margin-top: 3px; 
+      padding: 0 4px;
+      display: flex;
+      gap: 4px;
+    }
+    .msg-wrap.sent-wrap .msg-meta { justify-content: flex-end; }
+
+    .reactions-bar { 
+      display:flex; 
+      gap:3px; 
+      margin-top:4px; 
+      flex-wrap: wrap;
+    }
+    .reactions-bar button { 
+      border:none; 
+      background: rgba(255,255,255,0.06); 
+      border-radius: 20px; 
+      font-size: 14px; 
+      padding: 1px 8px; 
+      cursor:pointer;
+      transition: 0.15s;
+      color: #aebac1;
+    }
+    .reactions-bar button:hover { background: rgba(255,255,255,0.15); transform: scale(1.1); }
+    .reactions-shown { 
+      display:flex; 
+      gap:3px; 
+      font-size: 14px; 
+      margin-top:2px;
+      background: rgba(255,255,255,0.04);
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    /* Typing indicator - WhatsApp style */
+    .typing-indicator { 
+      font-size: 13px; 
+      color: #aebac1; 
+      padding: 6px 18px; 
+      display:none; 
+      align-items:center; 
+      gap:6px; 
+      background: #0b1419;
+      border-top: 1px solid #1f2c33;
+      flex-shrink: 0;
+    }
+    .typing-dots span { 
+      display: inline-block;
+      animation: blink 1.4s infinite; 
+      font-size: 22px;
+      line-height: 1;
+    }
+    .typing-dots span:nth-child(2){animation-delay:.2s;}
+    .typing-dots span:nth-child(3){animation-delay:.4s;}
+    @keyframes blink { 0%,80%,100%{opacity:.2;} 40%{opacity:1;} }
+
+    /* ===== INPUT AREA - WhatsApp style ===== */
+    .input-area { 
+      background: #1f2c33; 
+      border-top: 1px solid #2a3b44;
+      flex-shrink: 0;
+    }
+    #imgPreviewBar {
+      display:none;
+      padding:8px 16px;
+      background: #1f2c33;
+      border-bottom: 1px solid #2a3b44;
+      align-items:center;
+      gap:10px;
+    }
+    #imgPreviewBar img { height:45px; border-radius:8px; border:1px solid #3b4a54; }
+    #imgPreviewBar span { font-size:13px; color:#aebac1; flex:1; }
+    #imgPreviewBar .icon-btn { background: #e53935; width:30px; height:30px; font-size:14px; }
+
+    .input-box { 
+      display: flex; 
+      padding: 8px 12px; 
+      align-items:center; 
+      gap:8px; 
+    }
+    .input-box input[type=text] { 
+      flex: 1; 
+      padding: 10px 16px; 
+      border: none; 
+      border-radius: 30px; 
+      outline: none; 
+      background: #2a3b44; 
+      color: #e9edef; 
+      font-size: 15px;
+      transition: 0.2s;
+    }
+    .input-box input[type=text]:focus { background: #334a55; }
+    .input-box input[type=text]::placeholder { color: #67747a; }
+    
+    .input-box button { 
+      background: #25d366; 
+      color: #111b21; 
+      border: none; 
+      padding: 10px 14px; 
+      border-radius: 50%; 
+      cursor: pointer; 
+      font-size: 18px;
+      transition: 0.2s;
+      width: 46px;
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .input-box button:hover { background: #2be87a; transform: scale(1.05); }
+    .input-box .attach-btn { background: #2a3b44; color: #aebac1; }
+    .input-box .attach-btn:hover { background: #3b4a54; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 520px) {
+      .chat-container { max-height: 100vh; border-radius: 0; }
+      .header { padding: 8px 12px; }
+      .header-title h2 { font-size: 16px; }
+      .my-id-badge { font-size: 11px; padding: 3px 10px; }
+      .peer-selector input { font-size: 13px; padding: 6px 10px; }
+      .peer-selector button { font-size: 12px; padding: 6px 14px; }
+      .message { font-size: 14px; }
+    }
+
+    /* WhatsApp pulse for incoming call */
+    @keyframes pulse-whatsapp { 0% { box-shadow: 0 0 0 0 #25d36680; } 100% { box-shadow: 0 0 0 15px transparent; } }
+    .call-incoming { animation: pulse-whatsapp 1.2s infinite; }
   </style>
 
   <!-- Firebase SDKs -->
@@ -55,17 +403,32 @@
 <div class="chat-container">
   <div class="header">
     <div class="header-top">
-      <h2>محادثات خاصة 🔒</h2>
-      <span class="my-id-badge">معرفك: <span id="myIdDisplay">...</span></span>
+      <div class="header-title">
+        <h2>
+          <span class="whatsapp-icon">💬</span>
+          واتساب خاص
+          <span style="font-size:14px; color:#25d366;">🔒</span>
+        </h2>
+      </div>
+      <div class="header-icons">
+        <span class="my-id-badge">🆔 <span id="myIdDisplay">...</span></span>
+        <button class="icon-btn" id="themeToggleBtn" onclick="toggleTheme()" title="وضع ليلي/نهاري">🌙</button>
+      </div>
+    </div>
+    <div class="status-row">
+      <span class="dot" id="peerStatusDot"></span>
+      <span id="peerStatusText">🔍 لم يتم الاتصال بأي مستخدم</span>
     </div>
     <div class="peer-selector">
-      <input type="text" id="targetUserIdInput" placeholder="أدخل ID المستلم هنا...">
-      <button onclick="connectToPeer()">بدء التواصل</button>
+      <input type="text" id="targetUserIdInput" placeholder="📱 أدخل ID المستلم هنا..." onfocus="this.select()">
+      <button onclick="connectToPeer()">⬅️ بدء</button>
     </div>
     <div class="buttons-group">
-      <button class="call-btn voice-btn" id="voiceCallBtn" onclick="startCall(false)">📞 صوت</button>
+      <button class="call-btn voice-btn" id="voiceCallBtn" onclick="startCall(false)">🎙️ صوت</button>
       <button class="call-btn video-btn" id="videoCallBtn" onclick="startCall(true)">📹 فيديو</button>
-      <button class="call-btn" id="endCallBtn" style="background:#e53935; display:none;" onclick="endCall()">❌ إنهاء</button>
+      <button class="call-btn" id="endCallBtn" style="background:#e53935; display:none;" onclick="endCall()">⏹️ إنهاء</button>
+      <button class="call-btn mute-btn" id="muteBtn" onclick="toggleMute()">🔇 كتم</button>
+      <button class="call-btn clear-btn" onclick="clearChat()">🗑️ مسح</button>
     </div>
   </div>
 
@@ -74,18 +437,35 @@
     <video id="remoteVideo" autoplay playsinline></video>
   </div>
 
-  <div id="call-status">🎙️ جارٍ الاتصال...</div>
+  <div id="call-status">📞 جارٍ الاتصال...</div>
 
   <div class="messages-box" id="messagesBox"></div>
 
-  <div class="input-box">
-    <input type="text" id="messageInput" placeholder="اكتب رسالة..." onkeypress="handleKeyPress(event)">
-    <button onclick="sendMessage()">➤</button>
+  <div class="typing-indicator" id="typingIndicator">
+    <span id="typingName"></span>
+    <span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>
+    يكتب الآن
+  </div>
+
+  <div class="input-area">
+    <div id="imgPreviewBar">
+      <img id="imgPreviewThumb" src="" alt="">
+      <span>🖼️ صورة جاهزة للإرسال</span>
+      <button class="icon-btn" style="background:#e53935;" onclick="cancelImage()">✖</button>
+    </div>
+    <div class="input-box">
+      <button class="attach-btn" onclick="document.getElementById('fileInput').click()" title="إرفاق صورة">📎</button>
+      <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileSelect(event)">
+      <input type="text" id="messageInput" placeholder="اكتب رسالة..." onkeypress="handleKeyPress(event)" oninput="notifyTyping()">
+      <button onclick="sendMessage()">➤</button>
+    </div>
   </div>
 </div>
 
 <script>
-  // 1. إعدادات Firebase الخاصة بك
+  // ================================================================
+  //   FIREBASE CONFIG
+  // ================================================================
   const firebaseConfig = {
     apiKey: "AIzaSyAIwD3ieFkZh53Us_GCNz6nos-wetw-QAw",
     authDomain: "chatapppr-e8c2c.firebaseapp.com",
@@ -100,15 +480,118 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
-  // توليد ID عشوائي ومختصر لكل جهاز
-  const myUserId = "ID_" + Math.floor(1000 + Math.random() * 9000);
+  // ================================================================
+  //   USER ID - FIXED (يتم حفظه في المتصفح)
+  // ================================================================
+  let myUserId = localStorage.getItem('whatsapp_private_myid');
+  if (!myUserId) {
+    myUserId = "ID_" + Math.floor(1000 + Math.random() * 9000);
+    localStorage.setItem('whatsapp_private_myid', myUserId);
+  }
   document.getElementById("myIdDisplay").innerText = myUserId;
 
   let targetUserId = null;
   let chatRoomRef = null;
-  let callSignalingRef = null;
+  let presenceRef = null;
+  let typingRef = null;
+  let isMuted = false;
+  let darkMode = false;
+  let pendingImageData = null;
+  let typingTimeout = null;
+  const shownDateSeps = new Set();
 
-  // --- دالة ربط المحادثة بين المستخدمين (1-على-1) ---
+  // ================================================================
+  //   THEME TOGGLE - WhatsApp Light/Dark
+  // ================================================================
+  function toggleTheme() {
+    darkMode = !darkMode;
+    // Dark mode = WhatsApp dark, Light mode = WhatsApp light
+    if (darkMode) {
+      // Light mode (WhatsApp light)
+      document.body.style.background = '#e5ddd5';
+      document.querySelector('.chat-container').style.background = '#ffffff';
+      document.querySelector('.header').style.background = '#075e54';
+      document.querySelector('.header').style.borderBottom = '1px solid #128c7e';
+      document.querySelector('.header-title h2').style.color = '#ffffff';
+      document.querySelector('.my-id-badge').style.background = '#25d366';
+      document.querySelector('.my-id-badge').style.color = '#111b21';
+      document.querySelector('.messages-box').style.background = '#e5ddd5';
+      document.querySelectorAll('.message.sent').forEach(el => { el.style.background = '#dcf8c6'; el.style.color = '#111b21'; });
+      document.querySelectorAll('.message.received').forEach(el => { el.style.background = '#ffffff'; el.style.color = '#111b21'; });
+      document.querySelector('.input-area').style.background = '#ffffff';
+      document.querySelector('.input-area').style.borderTop = '1px solid #ccc';
+      document.querySelector('.input-box input[type=text]').style.background = '#f0f2f5';
+      document.querySelector('.input-box input[type=text]').style.color = '#111b21';
+      document.querySelectorAll('.date-sep').forEach(el => { el.style.background = 'rgba(0,0,0,0.08)'; el.style.color = '#333'; });
+      document.querySelector('#imgPreviewBar').style.background = '#ffffff';
+      document.querySelector('#imgPreviewBar').style.borderBottom = '1px solid #ccc';
+      document.querySelector('.peer-selector').style.background = '#f0f2f5';
+      document.querySelector('.peer-selector input').style.color = '#111b21';
+      document.querySelector('.peer-selector input').style.background = 'transparent';
+      document.querySelector('.status-row').style.color = '#aebac1';
+      document.querySelector('#typingIndicator').style.background = '#e5ddd5';
+      document.querySelector('#typingIndicator').style.color = '#555';
+      document.getElementById('themeToggleBtn').innerText = '🌙';
+    } else {
+      // Dark mode (WhatsApp dark)
+      document.body.style.background = '#0b1419';
+      document.querySelector('.chat-container').style.background = '#111b21';
+      document.querySelector('.header').style.background = '#1f2c33';
+      document.querySelector('.header').style.borderBottom = '1px solid #2a3b44';
+      document.querySelector('.header-title h2').style.color = '#e9edef';
+      document.querySelector('.my-id-badge').style.background = '#25d366';
+      document.querySelector('.my-id-badge').style.color = '#111b21';
+      document.querySelector('.messages-box').style.background = '#0b1419';
+      document.querySelectorAll('.message.sent').forEach(el => { el.style.background = '#005c4b'; el.style.color = '#e9edef'; });
+      document.querySelectorAll('.message.received').forEach(el => { el.style.background = '#1f2c33'; el.style.color = '#e9edef'; });
+      document.querySelector('.input-area').style.background = '#1f2c33';
+      document.querySelector('.input-area').style.borderTop = '1px solid #2a3b44';
+      document.querySelector('.input-box input[type=text]').style.background = '#2a3b44';
+      document.querySelector('.input-box input[type=text]').style.color = '#e9edef';
+      document.querySelectorAll('.date-sep').forEach(el => { el.style.background = 'rgba(255,255,255,0.06)'; el.style.color = '#aebac1'; });
+      document.querySelector('#imgPreviewBar').style.background = '#1f2c33';
+      document.querySelector('#imgPreviewBar').style.borderBottom = '1px solid #2a3b44';
+      document.querySelector('.peer-selector').style.background = '#2a3b44';
+      document.querySelector('.peer-selector input').style.color = '#e9edef';
+      document.querySelector('.peer-selector input').style.background = 'transparent';
+      document.querySelector('.status-row').style.color = '#aebac1';
+      document.querySelector('#typingIndicator').style.background = '#0b1419';
+      document.querySelector('#typingIndicator').style.color = '#aebac1';
+      document.getElementById('themeToggleBtn').innerText = '☀️';
+    }
+  }
+
+  // ================================================================
+  //   MUTE / SOUND
+  // ================================================================
+  function toggleMute() {
+    isMuted = !isMuted;
+    document.getElementById('muteBtn').innerHTML = isMuted ? '🔕 مكتوم' : '🔇 كتم';
+    document.getElementById('muteBtn').style.background = isMuted ? '#e53935' : '#546e7a';
+  }
+
+  let audioCtx = null;
+  function beep(freq, duration) {
+    if (isMuted) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.value = freq;
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      osc.start();
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.stop(audioCtx.currentTime + duration);
+    } catch (e) {}
+  }
+  const playReceiveSound = () => beep(800, 0.12);
+  const playSendSound = () => beep(550, 0.08);
+
+  // ================================================================
+  //   CONNECT TO PEER
+  // ================================================================
   function getRoomId(userA, userB) {
     return [userA, userB].sort().join("_");
   }
@@ -117,87 +600,242 @@
     const input = document.getElementById("targetUserIdInput");
     const peerId = input.value.trim();
 
-    if (!peerId) {
-      alert("يرجى إدخال ID المستلم أولاً.");
-      return;
-    }
-    if (peerId === myUserId) {
-      alert("لا يمكنك التواصل مع نفسك!");
-      return;
-    }
+    if (!peerId) { alert("⚠️ الرجاء إدخال ID المستلم."); return; }
+    if (peerId === myUserId) { alert("⛔ لا يمكنك التواصل مع نفسك!"); return; }
 
     targetUserId = peerId;
     const roomId = getRoomId(myUserId, targetUserId);
 
-    // تصفية الرسائل القديمة في الواجهة
     document.getElementById("messagesBox").innerHTML = "";
+    shownDateSeps.clear();
 
-    // إلغاء الاستماع السابق إن وجد
     if (chatRoomRef) chatRoomRef.off();
+    if (presenceRef) presenceRef.off();
+    if (typingRef) typingRef.off();
 
-    // ربط مسار الرسائل الخاص بـ RoomId
+    // --- Messages ---
     chatRoomRef = db.ref("private_chats/" + roomId);
     chatRoomRef.on("child_added", (snapshot) => {
       const data = snapshot.val();
-      displayMessage(data);
+      displayMessage(data, snapshot.key);
+      if (data.sender !== myUserId) playReceiveSound();
     });
 
-    alert("تم الربط مع المستخدم: " + targetUserId + "\nيمكنك الآن إرسال الرسائل وبدء المكالمة الخاصة.");
+    // --- Presence ---
+    presenceRef = db.ref("presence/" + targetUserId);
+    presenceRef.on("value", (snap) => {
+      const val = snap.val();
+      const online = !!(val && val.online);
+      document.getElementById("peerStatusDot").classList.toggle("online", online);
+      document.getElementById("peerStatusText").innerHTML = online 
+        ? `🟢 ${targetUserId} متصل الآن` 
+        : `⚪ ${targetUserId} غير متصل • آخر ظهور: ${val?.lastSeen ? new Date(val.lastSeen).toLocaleString('ar') : 'غير معروف'}`;
+    });
+
+    // --- Typing ---
+    typingRef = db.ref("typing/" + roomId + "/" + targetUserId);
+    typingRef.on("value", (snap) => {
+      const isTyping = !!snap.val();
+      const el = document.getElementById("typingIndicator");
+      document.getElementById("typingName").innerText = targetUserId;
+      el.style.display = isTyping ? "flex" : "none";
+    });
+
+    alert(`✅ تم الربط مع ${targetUserId}\nيمكنك الآن إرسال الرسائل والمكالمات.`);
   }
 
-  // --- إرسال وقراءة الرسائل الخاصة ---
+  // ================================================================
+  //   PRESENCE - MY STATUS
+  // ================================================================
+  const myPresenceRef = db.ref("presence/" + myUserId);
+  myPresenceRef.set({ online: true, lastSeen: Date.now() });
+  myPresenceRef.onDisconnect().set({ online: false, lastSeen: Date.now() });
+  window.addEventListener("beforeunload", () => {
+    myPresenceRef.set({ online: false, lastSeen: Date.now() });
+  });
+
+  // ================================================================
+  //   TYPING INDICATOR
+  // ================================================================
+  function notifyTyping() {
+    if (!targetUserId) return;
+    const roomId = getRoomId(myUserId, targetUserId);
+    const myTypingRef = db.ref("typing/" + roomId + "/" + myUserId);
+    myTypingRef.set(true);
+    if (typingTimeout) clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => myTypingRef.set(false), 2000);
+  }
+
+  // ================================================================
+  //   SEND MESSAGE
+  // ================================================================
   function sendMessage() {
     if (!targetUserId) {
-      alert("أدخل ID الطرف الآخر واضغط 'بدء التواصل' أولاً.");
+      alert("⚠️ أدخل ID الطرف الآخر واضغط 'بدء' أولاً.");
       return;
     }
-
     const input = document.getElementById("messageInput");
     const text = input.value.trim();
+    if (text === "" && !pendingImageData) return;
 
-    if (text !== "") {
-      chatRoomRef.push({
-        sender: myUserId,
-        text: text,
-        timestamp: Date.now()
-      });
-      input.value = "";
-    }
+    const payload = { sender: myUserId, text: text, timestamp: Date.now() };
+    if (pendingImageData) payload.image = pendingImageData;
+
+    chatRoomRef.push(payload);
+    playSendSound();
+    input.value = "";
+    cancelImage();
+
+    const roomId = getRoomId(myUserId, targetUserId);
+    db.ref("typing/" + roomId + "/" + myUserId).set(false);
   }
 
-  function handleKeyPress(e) {
-    if (e.key === "Enter") sendMessage();
+  function handleKeyPress(e) { if (e.key === "Enter") sendMessage(); }
+
+  // ================================================================
+  //   IMAGE HANDLING
+  // ================================================================
+  function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (file.size > 500 * 1024) { alert("⚠️ الصورة كبيرة جداً (الحد 500KB)."); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      pendingImageData = e.target.result;
+      document.getElementById("imgPreviewThumb").src = pendingImageData;
+      document.getElementById("imgPreviewBar").style.display = "flex";
+    };
+    reader.readAsDataURL(file);
   }
 
-  function displayMessage(data) {
+  function cancelImage() {
+    pendingImageData = null;
+    document.getElementById("fileInput").value = "";
+    document.getElementById("imgPreviewBar").style.display = "none";
+  }
+
+  // ================================================================
+  //   DISPLAY MESSAGE
+  // ================================================================
+  function formatTime(ts) { return new Date(ts).toLocaleTimeString('ar', { hour:'2-digit', minute:'2-digit' }); }
+  function formatDateLabel(ts) {
+    const d = new Date(ts);
+    const today = new Date();
+    const yesterday = new Date(); yesterday.setDate(today.getDate()-1);
+    const sameDay = (a,b) => a.toDateString() === b.toDateString();
+    if (sameDay(d, today)) return "اليوم";
+    if (sameDay(d, yesterday)) return "أمس";
+    return d.toLocaleDateString('ar', { year:'numeric', month:'long', day:'numeric' });
+  }
+
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  function linkifyText(text) { return text.replace(urlRegex, url => `<a class="chat-link" href="${url}" target="_blank" rel="noopener">${url}</a>`); }
+  function extractFirstUrl(text) { const match = text.match(urlRegex); return match ? match[0] : null; }
+
+  function displayMessage(data, msgKey) {
     const messagesBox = document.getElementById("messagesBox");
+    const dayLabel = formatDateLabel(data.timestamp || Date.now());
+    if (!shownDateSeps.has(dayLabel)) {
+      shownDateSeps.add(dayLabel);
+      const sep = document.createElement("div");
+      sep.className = "date-sep";
+      sep.innerText = dayLabel;
+      messagesBox.appendChild(sep);
+    }
+
+    const isSent = data.sender === myUserId;
+    const wrap = document.createElement("div");
+    wrap.className = "msg-wrap " + (isSent ? "sent-wrap" : "received-wrap");
+
     const msgDiv = document.createElement("div");
-    msgDiv.classList.add("message");
-    msgDiv.classList.add(data.sender === myUserId ? "sent" : "received");
-    msgDiv.innerText = data.text;
-    messagesBox.appendChild(msgDiv);
+    msgDiv.classList.add("message", isSent ? "sent" : "received");
+
+    if (data.text) {
+      msgDiv.innerHTML = linkifyText(data.text);
+      const url = extractFirstUrl(data.text);
+      if (url) {
+        const preview = document.createElement("div");
+        preview.className = "link-preview";
+        preview.innerText = "🔗 " + url;
+        msgDiv.appendChild(preview);
+      }
+    }
+    if (data.image) {
+      const img = document.createElement("img");
+      img.src = data.image;
+      img.className = "chat-img";
+      img.onclick = () => window.open(data.image, "_blank");
+      msgDiv.appendChild(img);
+    }
+
+    wrap.appendChild(msgDiv);
+
+    const meta = document.createElement("div");
+    meta.className = "msg-meta";
+    meta.innerText = formatTime(data.timestamp || Date.now());
+    wrap.appendChild(meta);
+
+    // Reactions
+    if (msgKey && targetUserId) {
+      const roomId = getRoomId(myUserId, targetUserId);
+      const reactionsRef = db.ref("private_chats_reactions/" + roomId + "/" + msgKey);
+
+      const reactionsShown = document.createElement("div");
+      reactionsShown.className = "reactions-shown";
+      wrap.appendChild(reactionsShown);
+
+      reactionsRef.on("value", (snap) => {
+        const vals = snap.val() || {};
+        reactionsShown.innerHTML = Object.values(vals).join(" ");
+      });
+
+      const bar = document.createElement("div");
+      bar.className = "reactions-bar";
+      ["❤️", "😂", "😮", "👍"].forEach((emoji) => {
+        const btn = document.createElement("button");
+        btn.innerText = emoji;
+        btn.onclick = () => reactionsRef.child(myUserId).set(emoji);
+        bar.appendChild(btn);
+      });
+      wrap.appendChild(bar);
+    }
+
+    messagesBox.appendChild(wrap);
     messagesBox.scrollTop = messagesBox.scrollHeight;
   }
 
-  // --- نظام المكالمات الخاصة (WebRTC) ---
+  // ================================================================
+  //   CLEAR CHAT
+  // ================================================================
+  function clearChat() {
+    if (!targetUserId || !chatRoomRef) { alert("⚠️ لا توجد محادثة لمسحها."); return; }
+    if (confirm("🗑️ هل أنت متأكد من مسح جميع رسائل هذه المحادثة؟")) {
+      chatRoomRef.remove();
+      document.getElementById("messagesBox").innerHTML = "";
+      shownDateSeps.clear();
+    }
+  }
+
+  // ================================================================
+  //   WEBRTC CALL SYSTEM
+  // ================================================================
   let localStream = null;
   let peerConnection = null;
   const iceServers = {
-    iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }]
+    iceServers: [
+      { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }
+    ]
   };
 
-  // الاستماع المستمر للمكالمات الواردة الموجهة لهذا المستخدم خصيصاً
+  // --- Listen for incoming calls ---
   const incomingCallsRef = db.ref("calls/" + myUserId);
   incomingCallsRef.on("value", async (snapshot) => {
     const data = snapshot.val();
     if (!data) return;
 
     if (data.offer && !peerConnection) {
-      const accept = confirm(`مكالمة واردة من ${data.callerId}. هل تريد الرد؟`);
-      if (!accept) {
-        incomingCallsRef.remove();
-        return;
-      }
+      const accept = confirm(`📞 مكالمة ${data.isVideo ? 'فيديو' : 'صوتية'} واردة من ${data.callerId}. هل تريد الرد؟`);
+      if (!accept) { incomingCallsRef.remove(); return; }
 
       targetUserId = data.callerId;
       document.getElementById("targetUserIdInput").value = targetUserId;
@@ -226,12 +864,10 @@
         await peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(data.offer)));
         const answer = await peerConnection.createAnswer();
         await peerConnection.setLocalDescription(answer);
-
-        // إرسال الرد للطرف المتصل
         await db.ref(`calls/${targetUserId}/answer`).set(JSON.stringify(answer));
 
       } catch (err) {
-        alert("فشل الوصول للكاميرا/الميكروفون: " + err.message);
+        alert("❌ فشل الوصول للكاميرا/الميكروفون: " + err.message);
         endCall();
       }
     }
@@ -241,16 +877,17 @@
     }
   });
 
-  // الاستماع لبيانات الشبكة ICE Candidates
+  // --- ICE Candidates ---
   db.ref(`calls/${myUserId}/candidates`).on("child_added", async (snapshot) => {
     if (peerConnection && snapshot.val()) {
       await peerConnection.addIceCandidate(new RTCIceCandidate(JSON.parse(snapshot.val())));
     }
   });
 
+  // --- Start Call ---
   async function startCall(isVideo) {
     if (!targetUserId) {
-      alert("أدخل ID الطرف الآخر واضغط 'بدء التواصل' أولاً إجراء المكالمة.");
+      alert("⚠️ أدخل ID الطرف الآخر واضغط 'بدء' أولاً.");
       return;
     }
 
@@ -276,7 +913,6 @@
       const offer = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offer);
 
-      // مسح طلبات الاتصال القديمة وإرسال العرض للطرف المستهدف
       await db.ref(`calls/${targetUserId}`).remove();
       await db.ref(`calls/${targetUserId}`).set({
         callerId: myUserId,
@@ -285,7 +921,7 @@
       });
 
     } catch (err) {
-      alert("تعذر إجراء المكالمة: " + err.message);
+      alert("❌ تعذر إجراء المكالمة: " + err.message);
       endCall();
     }
   }
@@ -293,34 +929,46 @@
   function showCallUI(isVideo) {
     document.getElementById("voiceCallBtn").style.display = "none";
     document.getElementById("videoCallBtn").style.display = "none";
-    document.getElementById("endCallBtn").style.display = "block";
+    document.getElementById("endCallBtn").style.display = "flex";
 
     if (isVideo) {
       document.getElementById("video-container").style.display = "flex";
+      document.getElementById("call-status").style.display = "none";
     } else {
+      document.getElementById("video-container").style.display = "none";
       document.getElementById("call-status").style.display = "block";
+      document.getElementById("call-status").innerHTML = "🎙️ جارٍ الاتصال الصوتي...";
     }
   }
 
   function endCall() {
-    if (localStream) {
-      localStream.getTracks().forEach(track => track.stop());
-      localStream = null;
-    }
-    if (peerConnection) {
-      peerConnection.close();
-      peerConnection = null;
-    }
+    if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
+    if (peerConnection) { peerConnection.close(); peerConnection = null; }
 
     if (myUserId) db.ref(`calls/${myUserId}`).remove();
     if (targetUserId) db.ref(`calls/${targetUserId}`).remove();
 
     document.getElementById("video-container").style.display = "none";
     document.getElementById("call-status").style.display = "none";
-    document.getElementById("voiceCallBtn").style.display = "block";
-    document.getElementById("videoCallBtn").style.display = "block";
+    document.getElementById("voiceCallBtn").style.display = "flex";
+    document.getElementById("videoCallBtn").style.display = "flex";
     document.getElementById("endCallBtn").style.display = "none";
   }
+
+  // ================================================================
+  //   AUTO-RECONNECT ON PEER ID FROM URL
+  // ================================================================
+  (function autoConnectFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const peer = params.get('peer');
+    if (peer) {
+      document.getElementById("targetUserIdInput").value = peer;
+      setTimeout(connectToPeer, 500);
+    }
+  })();
+
+  console.log(`🔐 واتساب خاص جاهز - معرفك: ${myUserId}`);
+  console.log(`💡 شارك هذا المعرف مع جهات الاتصال الخاصة بك.`);
 </script>
 
 </body>
