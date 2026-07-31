@@ -18,7 +18,7 @@
     .voice-btn { background: #25d366; }
     .video-btn { background: #128c7e; }
     
-    /* Video Box (مخفي افتراضياً، يظهر عند مكالمة الفيديو) */
+    /* Video Box */
     #video-container { display: none; height: 180px; background: #000; position: relative; }
     #local-video, #remote-video { width: 50%; height: 100%; display: inline-block; object-fit: cover; }
 
@@ -46,7 +46,6 @@
 <body>
 
 <div class="chat-container">
-  <!-- شريط العنوان وأزرار الاتصال -->
   <div class="header">
     <h2>شات ومكالمات</h2>
     <div class="buttons-group">
@@ -55,19 +54,15 @@
     </div>
   </div>
 
-  <!-- شاشة الفيديو -->
   <div id="video-container">
     <div id="local-video"></div>
     <div id="remote-video"></div>
   </div>
 
-  <!-- حالة المكالمة الصوتية -->
   <div id="call-status">🎙️ جارٍ الاتصال الصوتي...</div>
 
-  <!-- صندوق الرسائل -->
   <div class="messages-box" id="messagesBox"></div>
 
-  <!-- صندوق الكتابة -->
   <div class="input-box">
     <input type="text" id="messageInput" placeholder="اكتب رسالة..." onkeypress="handleKeyPress(event)">
     <button onclick="sendMessage()">➤</button>
@@ -75,7 +70,7 @@
 </div>
 
 <script>
-  // إعدادات Firebase الخاصة بك
+  // إعدادات Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyAIwD3ieFkZh53Us_GCNz6nos-wetw-QAw",
     authDomain: "chatapppr-e8c2c.firebaseapp.com",
@@ -90,9 +85,10 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   const messagesRef = db.ref("messages");
-  const userId = "User_" + Math.floor(Math.random() * 1000);
+  
+  const numericUserId = Math.floor(Math.random() * 100000);
+  const userId = "User_" + numericUserId;
 
-  // إرسال وقراءة الرسائل
   function sendMessage() {
     const input = document.getElementById("messageInput");
     const text = input.value.trim();
@@ -117,9 +113,11 @@
     messagesBox.scrollTop = messagesBox.scrollHeight;
   });
 
-  // إعدادات Agora المشتركة للمكالمات (صوت أو فيديو)
-  const agoraAppId = "3da115c147d54bc098d971641dd4cfae";
-  const channelName = "general_room";
+  // إعدادات Agora المحدثة لجميع القيم التي أرسلتها
+  const agoraAppId = "c9b9ef03aeda43ee813af83d4442d39a";
+  const channelName = "c9b9ef03aeda43ee813af83d4442d39a"; // اسم القناة مطاطق تماماً لـ App ID
+  const agoraToken = "007eJxTYAh4UrzTrFuqIN5EiS/7lmWmoBn7IweRqn/7bxo/6Z+mulKBIdkyyTI1zcA4MTUl0cQ4NdXC0DgxzcI4xcTExCjF2DJRYHlOVkMgI4PToq1MjAwQCOIT1snAAACU9iXI";
+
   let rtc = { client: null, localAudioTrack: null, localVideoTrack: null };
   let inCall = false;
   let currentCallType = null;
@@ -131,65 +129,94 @@
     const callStatus = document.getElementById("call-status");
 
     if (!inCall) {
-      currentCallType = type;
-      inCall = true;
+      try {
+        currentCallType = type;
 
-      // تهيئة العميل في Agora
-      rtc.client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-      await rtc.client.join(agoraAppId, channelName, null, userId);
+        rtc.client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
 
-      // تفعيل المسارات حسب نوع المكالمة
-      rtc.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+        rtc.client.on("user-published", async (user, mediaType) => {
+          await rtc.client.subscribe(user, mediaType);
+          if (mediaType === "audio") {
+            user.audioTrack.play();
+          }
+          if (mediaType === "video" && currentCallType === 'video') {
+            user.videoTrack.play("remote-video");
+          }
+        });
 
-      if (type === 'video') {
-        rtc.localVideoTrack = await AgoraRTC.createCameraVideoTrack();
-        videoContainer.style.display = "flex";
-        rtc.localVideoTrack.play("local-video");
-        await rtc.client.publish([rtc.localAudioTrack, rtc.localVideoTrack]);
-        
-        videoBtn.innerText = "❌ إنهاء الفيديو";
-        videoBtn.style.background = "#e53935";
-        voiceBtn.style.display = "none"; // إخفاء زر الصوت مؤقتاً
-      } else {
-        callStatus.style.display = "block";
-        await rtc.client.publish([rtc.localAudioTrack]);
-        
-        voiceBtn.innerText = "❌ إنهاء الصوت";
-        voiceBtn.style.background = "#e53935";
-        videoBtn.style.display = "none"; // إخفاء زر الفيديو مؤقتاً
+        // الانضمام باستخدام التوكن المعطى
+        await rtc.client.join(agoraAppId, channelName, agoraToken, null);
+
+        rtc.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+
+        if (type === 'video') {
+          rtc.localVideoTrack = await AgoraRTC.createCameraVideoTrack();
+          videoContainer.style.display = "flex";
+          rtc.localVideoTrack.play("local-video");
+          await rtc.client.publish([rtc.localAudioTrack, rtc.localVideoTrack]);
+          
+          videoBtn.innerText = "❌ إنهاء الفيديو";
+          videoBtn.style.background = "#e53935";
+          voiceBtn.style.display = "none";
+        } else {
+          callStatus.style.display = "block";
+          await rtc.client.publish([rtc.localAudioTrack]);
+          
+          voiceBtn.innerText = "❌ إنهاء الصوت";
+          voiceBtn.style.background = "#e53935";
+          videoBtn.style.display = "none";
+        }
+
+        inCall = true;
+
+      } catch (error) {
+        console.error("خطأ أثناء الاتصال:", error);
+        alert("فشل الاتصال! التفاصيل: " + error.message);
+        resetCallUI();
       }
 
-      // استقبال الطرف الآخر (صوت أو فيديو)
-      rtc.client.on("user-published", async (user, mediaType) => {
-        await rtc.client.subscribe(user, mediaType);
-        if (mediaType === "audio") {
-          user.audioTrack.play();
-        }
-        if (mediaType === "video" && currentCallType === 'video') {
-          user.videoTrack.play("remote-video");
-        }
-      });
-
     } else {
-      // إنهاء المكالمة وإعادة الأزرار لوضعها الطبيعي
-      if (rtc.localAudioTrack) rtc.localAudioTrack.close();
-      if (rtc.localVideoTrack) rtc.localVideoTrack.close();
-      if (rtc.client) await rtc.client.leave();
-
-      videoContainer.style.display = "none";
-      callStatus.style.display = "none";
-
-      voiceBtn.innerText = "📞 صوت";
-      voiceBtn.style.background = "#25d366";
-      voiceBtn.style.display = "block";
-
-      videoBtn.innerText = "📹 فيديو";
-      videoBtn.style.background = "#128c7e";
-      videoBtn.style.display = "block";
-
-      inCall = false;
-      currentCallType = null;
+      await endCall();
     }
+  }
+
+  async function endCall() {
+    if (rtc.localAudioTrack) {
+      rtc.localAudioTrack.stop();
+      rtc.localAudioTrack.close();
+      rtc.localAudioTrack = null;
+    }
+    if (rtc.localVideoTrack) {
+      rtc.localVideoTrack.stop();
+      rtc.localVideoTrack.close();
+      rtc.localVideoTrack = null;
+    }
+    if (rtc.client) {
+      await rtc.client.leave();
+    }
+
+    resetCallUI();
+  }
+
+  function resetCallUI() {
+    const voiceBtn = document.getElementById("voiceCallBtn");
+    const videoBtn = document.getElementById("videoCallBtn");
+    const videoContainer = document.getElementById("video-container");
+    const callStatus = document.getElementById("call-status");
+
+    videoContainer.style.display = "none";
+    callStatus.style.display = "none";
+
+    voiceBtn.innerText = "📞 صوت";
+    voiceBtn.style.background = "#25d366";
+    voiceBtn.style.display = "block";
+
+    videoBtn.innerText = "📹 فيديو";
+    videoBtn.style.background = "#128c7e";
+    videoBtn.style.display = "block";
+
+    inCall = false;
+    currentCallType = null;
   }
 </script>
 
