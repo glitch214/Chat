@@ -3,26 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تطبيق الشات والمكالمات (صوت وفيديو)</title>
+  <title>تطبيق شات ومكالمات خاصة (1-على-1)</title>
   
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
     body { background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; }
     .chat-container { width: 100%; max-width: 480px; height: 95vh; background: #fff; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; }
     
-    /* Header */
-    .header { background: #075e54; color: white; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; }
-    .header h2 { font-size: 16px; }
-    .buttons-group { display: flex; gap: 6px; }
-    .call-btn { border: none; color: white; padding: 6px 10px; border-radius: 15px; cursor: pointer; font-size: 13px; font-weight: bold; }
+    /* Header Bar */
+    .header { background: #075e54; color: white; padding: 12px 15px; display: flex; flex-direction: column; gap: 8px; }
+    .header-top { display: flex; justify-content: space-between; align-items: center; }
+    .header h2 { font-size: 15px; }
+    .my-id-badge { background: #128c7e; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+    
+    /* Private Peer Target Area */
+    .peer-selector { display: flex; gap: 6px; background: rgba(255, 255, 255, 0.15); padding: 6px; border-radius: 8px; }
+    .peer-selector input { flex: 1; border: none; padding: 6px 10px; border-radius: 4px; font-size: 13px; outline: none; text-align: center; }
+    .peer-selector button { border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; background: #25d366; color: white; font-size: 12px; }
+
+    /* Action Buttons Group */
+    .buttons-group { display: flex; gap: 6px; justify-content: flex-end; margin-top: 4px; }
+    .call-btn { border: none; color: white; padding: 6px 12px; border-radius: 15px; cursor: pointer; font-size: 13px; font-weight: bold; }
     .voice-btn { background: #25d366; }
     .video-btn { background: #128c7e; }
     
-    /* Video Box */
+    /* Video Display Box */
     #video-container { display: none; height: 180px; background: #000; position: relative; }
-    #local-video, #remote-video { width: 50%; height: 100%; display: inline-block; object-fit: cover; }
+    video { width: 50%; height: 100%; object-fit: cover; background: #222; }
 
-    /* شريط حالة المكالمة الصوتية */
+    /* Call Status Bar */
     #call-status { display: none; background: #128c7e; color: white; text-align: center; padding: 8px; font-size: 14px; font-weight: bold; }
     
     /* Messages Area */
@@ -40,26 +49,32 @@
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-  <!-- Agora RTC SDK -->
-  <script src="https://download.agora.io/sdk/web/AgoraRTC_N-4.20.0.js"></script>
 </head>
 <body>
 
 <div class="chat-container">
   <div class="header">
-    <h2>شات ومكالمات</h2>
+    <div class="header-top">
+      <h2>محادثات خاصة 🔒</h2>
+      <span class="my-id-badge">معرفك: <span id="myIdDisplay">...</span></span>
+    </div>
+    <div class="peer-selector">
+      <input type="text" id="targetUserIdInput" placeholder="أدخل ID المستلم هنا...">
+      <button onclick="connectToPeer()">بدء التواصل</button>
+    </div>
     <div class="buttons-group">
-      <button class="call-btn voice-btn" id="voiceCallBtn" onclick="startCall('audio')">📞 صوت</button>
-      <button class="call-btn video-btn" id="videoCallBtn" onclick="startCall('video')">📹 فيديو</button>
+      <button class="call-btn voice-btn" id="voiceCallBtn" onclick="startCall(false)">📞 صوت</button>
+      <button class="call-btn video-btn" id="videoCallBtn" onclick="startCall(true)">📹 فيديو</button>
+      <button class="call-btn" id="endCallBtn" style="background:#e53935; display:none;" onclick="endCall()">❌ إنهاء</button>
     </div>
   </div>
 
   <div id="video-container">
-    <div id="local-video"></div>
-    <div id="remote-video"></div>
+    <video id="localVideo" autoplay playsinline muted></video>
+    <video id="remoteVideo" autoplay playsinline></video>
   </div>
 
-  <div id="call-status">🎙️ جارٍ الاتصال الصوتي...</div>
+  <div id="call-status">🎙️ جارٍ الاتصال...</div>
 
   <div class="messages-box" id="messagesBox"></div>
 
@@ -70,7 +85,7 @@
 </div>
 
 <script>
-  // إعدادات Firebase
+  // 1. إعدادات Firebase الخاصة بك
   const firebaseConfig = {
     apiKey: "AIzaSyAIwD3ieFkZh53Us_GCNz6nos-wetw-QAw",
     authDomain: "chatapppr-e8c2c.firebaseapp.com",
@@ -84,16 +99,68 @@
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
-  const messagesRef = db.ref("messages");
-  
-  const numericUserId = Math.floor(Math.random() * 100000);
-  const userId = "User_" + numericUserId;
 
+  // توليد ID عشوائي ومختصر لكل جهاز
+  const myUserId = "ID_" + Math.floor(1000 + Math.random() * 9000);
+  document.getElementById("myIdDisplay").innerText = myUserId;
+
+  let targetUserId = null;
+  let chatRoomRef = null;
+  let callSignalingRef = null;
+
+  // --- دالة ربط المحادثة بين المستخدمين (1-على-1) ---
+  function getRoomId(userA, userB) {
+    return [userA, userB].sort().join("_");
+  }
+
+  function connectToPeer() {
+    const input = document.getElementById("targetUserIdInput");
+    const peerId = input.value.trim();
+
+    if (!peerId) {
+      alert("يرجى إدخال ID المستلم أولاً.");
+      return;
+    }
+    if (peerId === myUserId) {
+      alert("لا يمكنك التواصل مع نفسك!");
+      return;
+    }
+
+    targetUserId = peerId;
+    const roomId = getRoomId(myUserId, targetUserId);
+
+    // تصفية الرسائل القديمة في الواجهة
+    document.getElementById("messagesBox").innerHTML = "";
+
+    // إلغاء الاستماع السابق إن وجد
+    if (chatRoomRef) chatRoomRef.off();
+
+    // ربط مسار الرسائل الخاص بـ RoomId
+    chatRoomRef = db.ref("private_chats/" + roomId);
+    chatRoomRef.on("child_added", (snapshot) => {
+      const data = snapshot.val();
+      displayMessage(data);
+    });
+
+    alert("تم الربط مع المستخدم: " + targetUserId + "\nيمكنك الآن إرسال الرسائل وبدء المكالمة الخاصة.");
+  }
+
+  // --- إرسال وقراءة الرسائل الخاصة ---
   function sendMessage() {
+    if (!targetUserId) {
+      alert("أدخل ID الطرف الآخر واضغط 'بدء التواصل' أولاً.");
+      return;
+    }
+
     const input = document.getElementById("messageInput");
     const text = input.value.trim();
+
     if (text !== "") {
-      messagesRef.push({ sender: userId, text: text, timestamp: Date.now() });
+      chatRoomRef.push({
+        sender: myUserId,
+        text: text,
+        timestamp: Date.now()
+      });
       input.value = "";
     }
   }
@@ -102,121 +169,157 @@
     if (e.key === "Enter") sendMessage();
   }
 
-  messagesRef.on("child_added", (snapshot) => {
-    const data = snapshot.val();
+  function displayMessage(data) {
     const messagesBox = document.getElementById("messagesBox");
     const msgDiv = document.createElement("div");
     msgDiv.classList.add("message");
-    msgDiv.classList.add(data.sender === userId ? "sent" : "received");
+    msgDiv.classList.add(data.sender === myUserId ? "sent" : "received");
     msgDiv.innerText = data.text;
     messagesBox.appendChild(msgDiv);
     messagesBox.scrollTop = messagesBox.scrollHeight;
-  });
+  }
 
-  // إعدادات Agora المحدثة لجميع القيم التي أرسلتها
-  const agoraAppId = "c9b9ef03aeda43ee813af83d4442d39a";
-  const channelName = "c9b9ef03aeda43ee813af83d4442d39a"; // اسم القناة مطاطق تماماً لـ App ID
-  const agoraToken = "007eJxTYAh4UrzTrFuqIN5EiS/7lmWmoBn7IweRqn/7bxo/6Z+mulKBIdkyyTI1zcA4MTUl0cQ4NdXC0DgxzcI4xcTExCjF2DJRYHlOVkMgI4PToq1MjAwQCOIT1snAAACU9iXI";
+  // --- نظام المكالمات الخاصة (WebRTC) ---
+  let localStream = null;
+  let peerConnection = null;
+  const iceServers = {
+    iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }]
+  };
 
-  let rtc = { client: null, localAudioTrack: null, localVideoTrack: null };
-  let inCall = false;
-  let currentCallType = null;
+  // الاستماع المستمر للمكالمات الواردة الموجهة لهذا المستخدم خصيصاً
+  const incomingCallsRef = db.ref("calls/" + myUserId);
+  incomingCallsRef.on("value", async (snapshot) => {
+    const data = snapshot.val();
+    if (!data) return;
 
-  async function startCall(type) {
-    const voiceBtn = document.getElementById("voiceCallBtn");
-    const videoBtn = document.getElementById("videoCallBtn");
-    const videoContainer = document.getElementById("video-container");
-    const callStatus = document.getElementById("call-status");
-
-    if (!inCall) {
-      try {
-        currentCallType = type;
-
-        rtc.client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-
-        rtc.client.on("user-published", async (user, mediaType) => {
-          await rtc.client.subscribe(user, mediaType);
-          if (mediaType === "audio") {
-            user.audioTrack.play();
-          }
-          if (mediaType === "video" && currentCallType === 'video') {
-            user.videoTrack.play("remote-video");
-          }
-        });
-
-        // الانضمام باستخدام التوكن المعطى
-        await rtc.client.join(agoraAppId, channelName, agoraToken, null);
-
-        rtc.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
-
-        if (type === 'video') {
-          rtc.localVideoTrack = await AgoraRTC.createCameraVideoTrack();
-          videoContainer.style.display = "flex";
-          rtc.localVideoTrack.play("local-video");
-          await rtc.client.publish([rtc.localAudioTrack, rtc.localVideoTrack]);
-          
-          videoBtn.innerText = "❌ إنهاء الفيديو";
-          videoBtn.style.background = "#e53935";
-          voiceBtn.style.display = "none";
-        } else {
-          callStatus.style.display = "block";
-          await rtc.client.publish([rtc.localAudioTrack]);
-          
-          voiceBtn.innerText = "❌ إنهاء الصوت";
-          voiceBtn.style.background = "#e53935";
-          videoBtn.style.display = "none";
-        }
-
-        inCall = true;
-
-      } catch (error) {
-        console.error("خطأ أثناء الاتصال:", error);
-        alert("فشل الاتصال! التفاصيل: " + error.message);
-        resetCallUI();
+    if (data.offer && !peerConnection) {
+      const accept = confirm(`مكالمة واردة من ${data.callerId}. هل تريد الرد؟`);
+      if (!accept) {
+        incomingCallsRef.remove();
+        return;
       }
 
+      targetUserId = data.callerId;
+      document.getElementById("targetUserIdInput").value = targetUserId;
+      connectToPeer();
+
+      const isVideo = data.isVideo;
+      showCallUI(isVideo);
+
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: isVideo });
+        if (isVideo) document.getElementById("localVideo").srcObject = localStream;
+
+        peerConnection = new RTCPeerConnection(iceServers);
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+        peerConnection.ontrack = (event) => {
+          document.getElementById("remoteVideo").srcObject = event.streams[0];
+        };
+
+        peerConnection.onicecandidate = (event) => {
+          if (event.candidate) {
+            db.ref(`calls/${targetUserId}/candidates`).push(JSON.stringify(event.candidate));
+          }
+        };
+
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(data.offer)));
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+
+        // إرسال الرد للطرف المتصل
+        await db.ref(`calls/${targetUserId}/answer`).set(JSON.stringify(answer));
+
+      } catch (err) {
+        alert("فشل الوصول للكاميرا/الميكروفون: " + err.message);
+        endCall();
+      }
+    }
+
+    if (data.answer && peerConnection && !peerConnection.remoteDescription) {
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(data.answer)));
+    }
+  });
+
+  // الاستماع لبيانات الشبكة ICE Candidates
+  db.ref(`calls/${myUserId}/candidates`).on("child_added", async (snapshot) => {
+    if (peerConnection && snapshot.val()) {
+      await peerConnection.addIceCandidate(new RTCIceCandidate(JSON.parse(snapshot.val())));
+    }
+  });
+
+  async function startCall(isVideo) {
+    if (!targetUserId) {
+      alert("أدخل ID الطرف الآخر واضغط 'بدء التواصل' أولاً إجراء المكالمة.");
+      return;
+    }
+
+    showCallUI(isVideo);
+
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: isVideo });
+      if (isVideo) document.getElementById("localVideo").srcObject = localStream;
+
+      peerConnection = new RTCPeerConnection(iceServers);
+      localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+      peerConnection.ontrack = (event) => {
+        document.getElementById("remoteVideo").srcObject = event.streams[0];
+      };
+
+      peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+          db.ref(`calls/${targetUserId}/candidates`).push(JSON.stringify(event.candidate));
+        }
+      };
+
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+
+      // مسح طلبات الاتصال القديمة وإرسال العرض للطرف المستهدف
+      await db.ref(`calls/${targetUserId}`).remove();
+      await db.ref(`calls/${targetUserId}`).set({
+        callerId: myUserId,
+        offer: JSON.stringify(offer),
+        isVideo: isVideo
+      });
+
+    } catch (err) {
+      alert("تعذر إجراء المكالمة: " + err.message);
+      endCall();
+    }
+  }
+
+  function showCallUI(isVideo) {
+    document.getElementById("voiceCallBtn").style.display = "none";
+    document.getElementById("videoCallBtn").style.display = "none";
+    document.getElementById("endCallBtn").style.display = "block";
+
+    if (isVideo) {
+      document.getElementById("video-container").style.display = "flex";
     } else {
-      await endCall();
+      document.getElementById("call-status").style.display = "block";
     }
   }
 
-  async function endCall() {
-    if (rtc.localAudioTrack) {
-      rtc.localAudioTrack.stop();
-      rtc.localAudioTrack.close();
-      rtc.localAudioTrack = null;
+  function endCall() {
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+      localStream = null;
     }
-    if (rtc.localVideoTrack) {
-      rtc.localVideoTrack.stop();
-      rtc.localVideoTrack.close();
-      rtc.localVideoTrack = null;
-    }
-    if (rtc.client) {
-      await rtc.client.leave();
+    if (peerConnection) {
+      peerConnection.close();
+      peerConnection = null;
     }
 
-    resetCallUI();
-  }
+    if (myUserId) db.ref(`calls/${myUserId}`).remove();
+    if (targetUserId) db.ref(`calls/${targetUserId}`).remove();
 
-  function resetCallUI() {
-    const voiceBtn = document.getElementById("voiceCallBtn");
-    const videoBtn = document.getElementById("videoCallBtn");
-    const videoContainer = document.getElementById("video-container");
-    const callStatus = document.getElementById("call-status");
-
-    videoContainer.style.display = "none";
-    callStatus.style.display = "none";
-
-    voiceBtn.innerText = "📞 صوت";
-    voiceBtn.style.background = "#25d366";
-    voiceBtn.style.display = "block";
-
-    videoBtn.innerText = "📹 فيديو";
-    videoBtn.style.background = "#128c7e";
-    videoBtn.style.display = "block";
-
-    inCall = false;
-    currentCallType = null;
+    document.getElementById("video-container").style.display = "none";
+    document.getElementById("call-status").style.display = "none";
+    document.getElementById("voiceCallBtn").style.display = "block";
+    document.getElementById("videoCallBtn").style.display = "block";
+    document.getElementById("endCallBtn").style.display = "none";
   }
 </script>
 
