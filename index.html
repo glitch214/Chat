@@ -5,233 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>واتساب خاص - محادثات ومكالمات مشفرة</title>
 
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-    body {
-      background-color: #0b1419;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    .chat-container {
-      width: 100%;
-      max-width: 500px;
-      height: 100vh;
-      max-height: 900px;
-      background: #111b21;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 0 40px rgba(0,0,0,0.7);
-      overflow: hidden;
-      position: relative;
-    }
-
-    /* ================= CHATS LIST SCREEN ================= */
-    #chatsListScreen { display: flex; flex-direction: column; height: 100%; background: #111b21; }
-    .list-header {
-      background: #1f2c33; padding: 14px 16px; display: flex; justify-content: space-between;
-      align-items: center; border-bottom: 1px solid #2a3b44; flex-shrink: 0;
-    }
-    .list-header h2 { color: #e9edef; font-size: 19px; display: flex; align-items: center; gap: 8px; }
-    .list-header-icons { display: flex; gap: 6px; align-items: center; }
-    .new-chat-bar { display: flex; gap: 6px; padding: 10px 14px; background: #1a262d; border-bottom: 1px solid #2a3b44; flex-wrap: wrap; }
-    .new-chat-bar input {
-      flex: 1; min-width: 120px; border: none; padding: 10px 16px; border-radius: 30px;
-      outline: none; background: #2a3b44; color: #e9edef; font-size: 14px;
-    }
-    .new-chat-bar input::placeholder { color: #67747a; }
-    .new-chat-bar button { border: none; padding: 8px 18px; border-radius: 30px; font-weight: 700; cursor: pointer; background: #25d366; color: #111b21; font-size: 13px; }
-    .new-chat-bar .tab-btn { background: #2a3b44; color: #aebac1; }
-    .chats-scroll { flex: 1; overflow-y: auto; }
-    .chat-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #1a262d; transition: background 0.15s; }
-    .chat-row:hover { background: #182229; }
-    .chat-avatar {
-      width: 46px; height: 46px; border-radius: 50%; background: #2a3b44; color: #25d366;
-      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; position: relative;
-    }
-    .chat-avatar.group-avatar { color: #53bdeb; }
-    .chat-avatar .online-badge { position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; border-radius: 50%; background: #67747a; border: 2px solid #111b21; }
-    .chat-avatar .online-badge.online { background: #25d366; }
-    .chat-info { flex: 1; min-width: 0; }
-    .chat-info .row1 { display: flex; justify-content: space-between; align-items: center; }
-    .chat-info .name { color: #e9edef; font-weight: 600; font-size: 15px; }
-    .chat-info .time { color: #67747a; font-size: 11px; }
-    .chat-info .preview { color: #8696a0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
-    .empty-chats { text-align: center; color: #67747a; padding: 60px 20px; font-size: 14px; line-height: 1.8; }
-    .my-id-badge-list { background: #25d366; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; color: #111b21; }
-
-    /* ================= CHAT ROOM SCREEN ================= */
-    #chatRoomScreen { display: none; flex-direction: column; height: 100%; }
-    .header { background: #1f2c33; padding: 10px 16px; display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #2a3b44; flex-shrink: 0; }
-    .header-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-    .header-title { display: flex; align-items: center; gap: 8px; min-width: 0; }
-    .back-btn { background: none; border: none; color: #e9edef; font-size: 20px; cursor: pointer; flex-shrink: 0; }
-    .header-title h2 { font-size: 17px; font-weight: 600; color: #e9edef; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .header-icons { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
-    .icon-btn { background: rgba(255,255,255,0.08); border: none; color: #aebac1; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 16px; display:flex; align-items:center; justify-content:center; transition: all 0.2s; }
-    .icon-btn:hover { background: rgba(255,255,255,0.15); }
-    .icon-btn.active-search { background: #25d366; color: #111b21; }
-    .status-row { display:flex; align-items:center; gap:6px; font-size:13px; color: #aebac1; padding: 2px 0; }
-    .dot { width:10px; height:10px; border-radius:50%; background:#67747a; display:inline-block; transition: 0.3s; }
-    .dot.online { background:#25d366; box-shadow: 0 0 10px #25d36680; }
-    .buttons-group { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
-    .call-btn { border: none; color: white; padding: 6px 14px; border-radius: 30px; cursor: pointer; font-size: 13px; font-weight: 700; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
-    .call-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
-    .voice-btn { background: #25d366; }
-    .video-btn { background: #00a884; }
-    .clear-btn { background: #e53935; }
-    .mute-btn { background: #546e7a; }
-    #endCallBtn { background: #e53935; display: none; }
-
-    #searchBar { display: none; padding: 8px 16px; background: #1a262d; border-bottom: 1px solid #2a3b44; gap: 8px; align-items: center; }
-    #searchBar input { flex: 1; border: none; padding: 8px 14px; border-radius: 20px; background: #2a3b44; color: #e9edef; outline: none; font-size: 13px; }
-    #searchBar span { color: #aebac1; font-size: 12px; white-space: nowrap; }
-
-    #video-container { display: none; height: 200px; background: #0b1419; position: relative; border-bottom: 1px solid #2a3b44; flex-shrink: 0; }
-    #video-container video { width: 50%; height: 100%; object-fit: cover; background: #111b21; }
-    #localVideo { transform: scaleX(-1); }
-    #call-status { display: none; background: #25d366; color: #111b21; text-align: center; padding: 10px; font-size: 15px; font-weight: 700; flex-shrink: 0; }
-
-    .messages-box { flex: 1; padding: 10px 16px; overflow-y: auto; background: #0b1419; display: flex; flex-direction: column; gap: 2px; scroll-behavior: smooth; }
-    .messages-box::-webkit-scrollbar { width: 5px; }
-    .messages-box::-webkit-scrollbar-track { background: #1f2c33; }
-    .messages-box::-webkit-scrollbar-thumb { background: #3b4a54; border-radius: 10px; }
-    .date-sep { align-self: center; background: rgba(255,255,255,0.06); color: #aebac1; font-size: 12px; padding: 4px 16px; border-radius: 30px; margin: 8px 0 4px; font-weight: 500; }
-    .msg-wrap { display:flex; flex-direction:column; max-width: 82%; animation: fadeSlide 0.25s ease; margin-bottom: 2px; }
-    .msg-wrap.sent-wrap { align-self:flex-end; align-items:flex-end; }
-    .msg-wrap.received-wrap { align-self:flex-start; align-items:flex-start; }
-    .msg-wrap.dimmed { opacity: 0.25; }
-    @keyframes fadeSlide { from { opacity:0; transform: translateY(10px);} to {opacity:1; transform:translateY(0);} }
-    .msg-sender-label { font-size: 11px; color: #53bdeb; font-weight: 700; margin-bottom: 2px; padding: 0 4px; }
-    .message { padding: 8px 14px; border-radius: 12px; font-size: 14.5px; word-wrap: break-word; position:relative; line-height: 1.5; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-    .message.sent { background: #005c4b; color: #e9edef; border-bottom-right-radius: 4px; }
-    .message.received { background: #1f2c33; color: #e9edef; border-bottom-left-radius: 4px; }
-    .message img.chat-img { max-width: 200px; border-radius: 8px; display:block; margin-top: 6px; cursor:pointer; border: 1px solid #2a3b44; }
-    .message audio.chat-audio { margin-top: 4px; width: 220px; height: 36px; }
-    .message a.chat-link { color: #53bdeb; font-weight:600; word-break:break-all; text-decoration: underline; }
-    .link-preview { border: 1px solid #2a3b44; border-radius: 10px; padding: 8px 10px; margin-top: 6px; background: #1a262d; font-size: 12px; color: #aebac1; }
-    .reply-quote { background: rgba(255,255,255,0.08); border-right: 3px solid #25d366; border-radius: 6px; padding: 5px 8px; margin-bottom: 5px; font-size: 12px; color: #cfd8dc; }
-    .reply-quote .rq-sender { color: #25d366; font-weight: 700; display: block; margin-bottom: 1px; }
-    .msg-meta { font-size: 10px; color: #67747a; margin-top: 3px; padding: 0 4px; display: flex; gap: 4px; align-items: center; }
-    .msg-wrap.sent-wrap .msg-meta { justify-content: flex-end; }
-    .tick { font-size: 13px; color: #67747a; }
-    .tick.read { color: #53bdeb; }
-    .msg-actions { display:flex; gap:6px; margin-top:3px; }
-    .msg-actions button { border:none; background: rgba(255,255,255,0.06); border-radius: 12px; font-size: 11px; padding: 2px 8px; cursor:pointer; color: #aebac1; }
-    .msg-actions button:hover { background: rgba(255,255,255,0.15); }
-    .reactions-bar { display:flex; gap:3px; margin-top:4px; flex-wrap: wrap; }
-    .reactions-bar button { border:none; background: rgba(255,255,255,0.06); border-radius: 20px; font-size: 14px; padding: 1px 8px; cursor:pointer; transition: 0.15s; color: #aebac1; }
-    .reactions-bar button:hover { background: rgba(255,255,255,0.15); transform: scale(1.1); }
-    .reactions-shown { display:flex; gap:3px; font-size: 14px; margin-top:2px; background: rgba(255,255,255,0.04); padding: 2px 8px; border-radius: 20px; }
-
-    .typing-indicator { font-size: 13px; color: #aebac1; padding: 6px 18px; display:none; align-items:center; gap:6px; background: #0b1419; border-top: 1px solid #1f2c33; flex-shrink: 0; }
-    .typing-dots span { display: inline-block; animation: blink 1.4s infinite; font-size: 22px; line-height: 1; }
-    .typing-dots span:nth-child(2){animation-delay:.2s;}
-    .typing-dots span:nth-child(3){animation-delay:.4s;}
-    @keyframes blink { 0%,80%,100%{opacity:.2;} 40%{opacity:1;} }
-
-    .input-area { background: #1f2c33; border-top: 1px solid #2a3b44; flex-shrink: 0; }
-    #replyPreviewBar { display: none; padding: 8px 16px; background: #1a262d; border-bottom: 1px solid #2a3b44; align-items:center; gap:10px; }
-    #replyPreviewBar .rp-text { flex: 1; font-size: 12px; color: #cfd8dc; border-right: 3px solid #25d366; padding-right: 8px; }
-    #replyPreviewBar .rp-text b { color: #25d366; display:block; font-size: 12px; }
-    #imgPreviewBar { display:none; padding:8px 16px; background: #1f2c33; border-bottom: 1px solid #2a3b44; align-items:center; gap:10px; }
-    #imgPreviewBar img { height:45px; border-radius:8px; border:1px solid #3b4a54; }
-    #imgPreviewBar span { font-size:13px; color:#aebac1; flex:1; }
-    #imgPreviewBar .icon-btn { background: #e53935; width:30px; height:30px; font-size:14px; }
-    #recordingBar { display: none; padding: 10px 16px; background: #1f2c33; border-bottom: 1px solid #2a3b44; align-items: center; gap: 10px; }
-    #recordingBar .rec-dot { width: 10px; height: 10px; border-radius: 50%; background: #e53935; animation: blink 1s infinite; }
-    #recordingBar span { color: #e9edef; font-size: 13px; flex: 1; }
-    #recordingBar button { border: none; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 700; }
-    #cancelRecBtn { background: #e53935; color: white; }
-    #sendRecBtn { background: #25d366; color: #111b21; }
-    .input-box { display: flex; padding: 8px 12px; align-items:center; gap:8px; }
-    .input-box input[type=text] { flex: 1; padding: 10px 16px; border: none; border-radius: 30px; outline: none; background: #2a3b44; color: #e9edef; font-size: 15px; transition: 0.2s; }
-    .input-box input[type=text]:focus { background: #334a55; }
-    .input-box input[type=text]::placeholder { color: #67747a; }
-    .input-box button { background: #25d366; color: #111b21; border: none; padding: 10px 14px; border-radius: 50%; cursor: pointer; font-size: 18px; transition: 0.2s; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .input-box button:hover { background: #2be87a; transform: scale(1.05); }
-    .input-box .attach-btn { background: #2a3b44; color: #aebac1; }
-    .input-box .attach-btn:hover { background: #3b4a54; }
-    .input-box .mic-btn { background: #2a3b44; color: #aebac1; }
-    .input-box .mic-btn.recording { background: #e53935; color: white; }
-
-    .modal-overlay { display:none; position:fixed; inset:0; background: rgba(0,0,0,0.6); z-index: 50; align-items:center; justify-content:center; }
-    .modal-box { background: #1f2c33; border-radius: 12px; padding: 20px; width: 85%; max-width: 380px; }
-    .modal-box h3 { color: #e9edef; margin-bottom: 12px; font-size: 16px; }
-    .modal-box input { width: 100%; padding: 10px 14px; border-radius: 8px; border: none; background: #2a3b44; color: #e9edef; margin-bottom: 10px; outline: none; font-size: 14px; }
-    .modal-box input::placeholder { color: #67747a; }
-    .modal-box .modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top: 8px; }
-    .modal-box button { border:none; padding: 8px 16px; border-radius: 20px; cursor:pointer; font-size: 13px; font-weight:700; }
-    .modal-cancel { background: #546e7a; color: white; }
-    .modal-confirm { background: #25d366; color: #111b21; }
-
-    @media (max-width: 520px) {
-      .chat-container { max-height: 100vh; }
-      .header { padding: 8px 12px; }
-      .header-title h2 { font-size: 16px; }
-      .message { font-size: 14px; }
-    }
-
-    /* ================= APP LOCK ================= */
-    #lockScreen {
-      display: none; position: absolute; inset: 0; z-index: 100;
-      background: #111b21; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
-    }
-    #lockScreen .lock-icon { font-size: 48px; }
-    #lockScreen h3 { color: #e9edef; font-size: 17px; }
-    #lockScreen .pin-dots { display: flex; gap: 12px; }
-    #lockScreen .pin-dots span { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #67747a; }
-    #lockScreen .pin-dots span.filled { background: #25d366; border-color: #25d366; }
-    #lockScreen .pin-pad { display: grid; grid-template-columns: repeat(3, 64px); gap: 12px; }
-    #lockScreen .pin-pad button {
-      width: 64px; height: 64px; border-radius: 50%; border: none; background: #1f2c33; color: #e9edef;
-      font-size: 20px; cursor: pointer;
-    }
-    #lockScreen .pin-pad button:active { background: #2a3b44; }
-    #lockScreen .lock-error { color: #e53935; font-size: 12px; height: 14px; }
-    #lockScreen .lock-hint { color: #67747a; font-size: 12px; cursor: pointer; text-decoration: underline; }
-
-    /* ================= AVATAR ================= */
-    .chat-avatar img.avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-    .header-title .peer-avatar-small { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-
-    /* ================= STATUS STRIP ================= */
-    .status-strip { display: flex; gap: 12px; padding: 12px 14px; overflow-x: auto; background: #1a262d; border-bottom: 1px solid #2a3b44; }
-    .status-item { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; cursor: pointer; width: 58px; }
-    .status-ring { width: 52px; height: 52px; border-radius: 50%; border: 2.5px solid #25d366; display: flex; align-items: center; justify-content: center; position: relative; }
-    .status-ring.seen { border-color: #546e7a; }
-    .status-ring .status-avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #2a3b44; }
-    .status-ring .status-avatar-fallback { width: 44px; height: 44px; border-radius: 50%; background: #2a3b44; color: #25d366; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; }
-    .status-item .status-label { font-size: 10px; color: #aebac1; text-align: center; max-width: 58px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .status-add-badge { position: absolute; bottom: -2px; right: -2px; width: 18px; height: 18px; border-radius: 50%; background: #25d366; color: #111b21; font-size: 12px; display:flex; align-items:center; justify-content:center; font-weight:900; border: 2px solid #1a262d; }
-
-    #statusViewerOverlay {
-      display: none; position: fixed; inset: 0; background: #000; z-index: 80;
-      align-items: center; justify-content: center; flex-direction: column;
-    }
-    #statusViewerOverlay .sv-progress { position: absolute; top: 8px; left: 8px; right: 8px; height: 3px; background: rgba(255,255,255,0.25); border-radius: 3px; overflow: hidden; }
-    #statusViewerOverlay .sv-progress-fill { height: 100%; background: #25d366; width: 0%; transition: width 0.1s linear; }
-    #statusViewerOverlay .sv-header { position: absolute; top: 18px; left: 12px; right: 12px; display: flex; align-items: center; gap: 8px; color: #fff; font-size: 13px; }
-    #statusViewerOverlay .sv-close { position: absolute; top: 16px; left: 12px; color: #fff; font-size: 22px; cursor: pointer; background: none; border: none; }
-    #statusViewerOverlay .sv-content { max-width: 90%; max-height: 70%; text-align: center; color: #fff; font-size: 20px; padding: 20px; }
-    #statusViewerOverlay .sv-content img { max-width: 100%; max-height: 60vh; border-radius: 8px; }
-  </style>
+  <!-- External Styles & Icon Library -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
 
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png" type="image/png">
   <meta name="theme-color" content="#111b21">
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 </head>
-<body>
+<body class="font-medium">
 
-<div class="chat-container">
+<div class="chat-container" id="appContainer">
 
   <!-- ================= APP LOCK SCREEN ================= -->
   <div id="lockScreen">
-    <div class="lock-icon">🔒</div>
+    <div class="lock-icon"><i class="fa-solid fa-lock"></i></div>
     <h3 id="lockTitle">أدخل رمز القفل</h3>
     <div class="pin-dots" id="pinDots">
       <span></span><span></span><span></span><span></span>
@@ -241,38 +31,60 @@
     <div class="lock-hint" id="lockForgotBtn" onclick="forgotPin()">نسيت الرمز؟ (إعادة تعيين)</div>
   </div>
 
+  <!-- ================= CHATS LIST SCREEN ================= -->
   <div id="chatsListScreen">
+    <div id="offlineBanner"><i class="fa-solid fa-wifi"></i> غير متصل بالإنترنت — الرسائل ستُرسل عند عودة الاتصال</div>
     <div class="list-header">
-      <h2>💬 المحادثات</h2>
+      <h2><i class="fa-solid fa-comments"></i> المحادثات</h2>
       <div class="list-header-icons">
-        <div class="chat-avatar" id="myAvatarBtn" style="width:32px;height:32px;font-size:12px;cursor:pointer;" onclick="document.getElementById('avatarFileInput').click()" title="تغيير الصورة الشخصية">👤</div>
+        <div class="chat-avatar" id="myAvatarBtn" style="width:32px;height:32px;font-size:12px;cursor:pointer;" onclick="openProfileModal()" title="الملف الشخصي"><i class="fa-solid fa-user"></i></div>
         <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarSelect(event)">
         <span class="my-id-badge-list">🆔 <span id="myIdDisplayList">...</span></span>
-        <button class="icon-btn" onclick="requestNotifyPermission()" title="تفعيل الإشعارات">🔔</button>
-        <button class="icon-btn" onclick="openLockSettings()" title="قفل التطبيق">🔐</button>
+        <button class="icon-btn" onclick="toggleLanguage()" title="EN / عربي" id="langToggleBtn"><i class="fa-solid fa-globe"></i></button>
+        <button class="icon-btn" onclick="toggleArchiveView()" title="الأرشيف" id="archiveToggleBtn"><i class="fa-solid fa-box-archive"></i></button>
+        <button class="icon-btn" onclick="requestNotifyPermission()" title="تفعيل الإشعارات"><i class="fa-solid fa-bell"></i></button>
+        <button class="icon-btn" onclick="openLockSettings()" title="قفل التطبيق"><i class="fa-solid fa-lock"></i></button>
+        <button class="icon-btn" onclick="openSettingsModal()" title="الإعدادات"><i class="fa-solid fa-gear"></i></button>
       </div>
     </div>
+    
     <div class="status-strip" id="statusStrip"></div>
+
+    <!-- Folders Bar -->
+    <div class="folders-bar" id="chatFoldersBar">
+      <div class="folder-chip active" onclick="setFolderTab('all')"><i class="fa-solid fa-border-all"></i> الكل</div>
+      <div class="folder-chip" onclick="setFolderTab('fav')"><i class="fa-solid fa-star"></i> المفضلة</div>
+      <div class="folder-chip" onclick="setFolderTab('work')"><i class="fa-solid fa-briefcase"></i> عمل</div>
+      <div class="folder-chip" onclick="setFolderTab('family')"><i class="fa-solid fa-house"></i> عائلة</div>
+    </div>
+
     <div class="new-chat-bar">
       <input type="text" id="newChatIdInput" placeholder="📱 ابدأ محادثة جديدة بإدخال ID...">
       <button onclick="startChatFromList()">بدء</button>
-      <button class="tab-btn" onclick="openGroupModal()">👥 مجموعة جديدة</button>
+      <button class="tab-btn" onclick="openGroupModal()"><i class="fa-solid fa-users"></i> مجموعة جديدة</button>
     </div>
+    <div id="pullRefreshSpinner"><span class="spin-icon"><i class="fa-solid fa-rotate-right"></i></span> جارٍ التحديث...</div>
     <div class="chats-scroll" id="chatsScroll">
       <div class="empty-chats" id="emptyChatsMsg">لا توجد محادثات بعد.<br>أدخل ID أي شخص أعلاه لبدء محادثة جديدة معه 👆</div>
     </div>
+    <button id="newChatFab" class="ripple-btn" onclick="document.getElementById('newChatIdInput').focus()" title="محادثة جديدة"><i class="fa-solid fa-pen"></i></button>
   </div>
 
+  <!-- ================= CHAT ROOM SCREEN ================= -->
   <div id="chatRoomScreen">
     <div class="header">
       <div class="header-top">
         <div class="header-title">
-          <button class="back-btn" onclick="goBackToList()">➡️</button>
+          <button class="back-btn" onclick="goBackToList()"><i class="fa-solid fa-arrow-right"></i></button>
           <h2 id="chatRoomTitle">محادثة</h2>
         </div>
         <div class="header-icons">
-          <button class="icon-btn" id="searchToggleBtn" onclick="toggleSearchBar()" title="بحث">🔍</button>
-          <button class="icon-btn" id="themeToggleBtn" onclick="toggleTheme()" title="وضع ليلي/نهاري">🌙</button>
+          <button class="icon-btn" id="e2eeToggleBtn" onclick="toggleE2EE()" title="تشفير E2EE"><i class="fa-solid fa-shield-halved"></i></button>
+          <button class="icon-btn" id="blockToggleBtn" onclick="toggleBlockUser()" title="حظر المستخدم" style="display:none;"><i class="fa-solid fa-user-slash"></i></button>
+          <button class="icon-btn" id="membersToggleBtn" onclick="openMembersModal()" title="الأعضاء" style="display:none;"><i class="fa-solid fa-users"></i></button>
+          <button class="icon-btn" id="disappearToggleBtn" onclick="openDisappearModal()" title="الرسائل المؤقتة"><i class="fa-solid fa-hourglass-half"></i></button>
+          <button class="icon-btn" id="searchToggleBtn" onclick="toggleSearchBar()" title="بحث"><i class="fa-solid fa-magnifying-glass"></i></button>
+          <button class="icon-btn" id="themeToggleBtn" onclick="toggleTheme()" title="وضع ليلي/نهاري"><i class="fa-solid fa-moon"></i></button>
         </div>
       </div>
       <div class="status-row">
@@ -280,12 +92,27 @@
         <span id="peerStatusText">🔍 لم يتم الاتصال بأي مستخدم</span>
       </div>
       <div class="buttons-group" id="callButtonsGroup">
-        <button class="call-btn voice-btn" id="voiceCallBtn" onclick="startCall(false)">🎙️ صوت</button>
-        <button class="call-btn video-btn" id="videoCallBtn" onclick="startCall(true)">📹 فيديو</button>
-        <button class="call-btn" id="endCallBtn" style="background:#e53935; display:none;" onclick="endCall()">⏹️ إنهاء</button>
-        <button class="call-btn mute-btn" id="muteBtn" onclick="toggleMute()">🔇 كتم</button>
-        <button class="call-btn clear-btn" onclick="clearChat()">🗑️ مسح</button>
+        <button class="call-btn voice-btn" id="voiceCallBtn" onclick="startCall(false)"><i class="fa-solid fa-phone"></i> صوت</button>
+        <button class="call-btn video-btn" id="videoCallBtn" onclick="startCall(true)"><i class="fa-solid fa-video"></i> فيديو</button>
+        <button class="call-btn" id="screenShareBtn" onclick="toggleScreenShare()" style="background:#7e57c2; display:none;"><i class="fa-solid fa-desktop"></i> مشاركة الشاشة</button>
+        <button class="call-btn" id="endCallBtn" style="background:#e53935; display:none;" onclick="endCall()"><i class="fa-solid fa-phone-slash"></i> إنهاء</button>
+        <button class="call-btn mute-btn" id="muteBtn" onclick="toggleMute()"><i class="fa-solid fa-microphone-slash"></i> كتم</button>
+        <button class="call-btn clear-btn" onclick="clearChat()"><i class="fa-solid fa-trash"></i> مسح</button>
       </div>
+      <div class="buttons-group" id="groupCallButtonsGroup" style="display:none;">
+        <button class="call-btn voice-btn" id="groupVoiceCallBtn" onclick="startGroupCall()"><i class="fa-solid fa-users-viewfinder"></i> مكالمة جماعية</button>
+        <button class="call-btn" id="groupEndCallBtn" style="background:#e53935; display:none;" onclick="endGroupCall()"><i class="fa-solid fa-phone-slash"></i> إنهاء</button>
+        <button class="call-btn clear-btn" onclick="clearChat()"><i class="fa-solid fa-trash"></i> مسح</button>
+      </div>
+    </div>
+
+    <!-- Pinned Message Bar -->
+    <div id="pinnedMsgBar" onclick="scrollToPinnedMsg()">
+      <div class="pm-info">
+        <span class="pm-title"><i class="fa-solid fa-thumbtack"></i> رسالة مثبتة</span>
+        <span class="pm-text" id="pmText">...</span>
+      </div>
+      <button onclick="event.stopPropagation(); unpinCurrentMessage()"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
     <div id="searchBar">
@@ -298,9 +125,11 @@
       <video id="remoteVideo" autoplay playsinline></video>
     </div>
 
-    <div id="call-status">📞 جارٍ الاتصال...</div>
+    <div id="call-status"><i class="fa-solid fa-phone"></i> جارٍ الاتصال...</div>
 
-    <div class="messages-box" id="messagesBox"></div>
+    <div class="messages-box" id="messagesBox">
+      <button id="loadOlderBtn" style="display:none;" onclick="loadOlderMessages()"><i class="fa-solid fa-arrow-up"></i> تحميل رسائل أقدم</button>
+    </div>
 
     <div class="typing-indicator" id="typingIndicator">
       <span id="typingName"></span>
@@ -309,14 +138,21 @@
     </div>
 
     <div class="input-area">
+      <!-- Quick Replies Bar -->
+      <div class="quick-replies-bar" id="quickRepliesBar">
+        <span style="font-size:11px; color:#8696a0;">رد سريع:</span>
+        <div id="quickReplyChips" style="display:flex; gap:6px;"></div>
+        <button class="qr-add-btn" onclick="addQuickReplyPrompt()" title="إضافة رد سريع">＋</button>
+      </div>
+
       <div id="replyPreviewBar">
         <div class="rp-text"><b id="rpSenderLabel"></b><span id="rpTextLabel"></span></div>
-        <button class="icon-btn" style="background:#e53935; width:28px; height:28px; font-size:13px;" onclick="clearReply()">✖</button>
+        <button class="icon-btn" style="background:#e53935; width:28px; height:28px; font-size:13px;" onclick="clearReply()"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div id="imgPreviewBar">
         <img id="imgPreviewThumb" src="" alt="">
         <span>🖼️ صورة جاهزة للإرسال</span>
-        <button class="icon-btn" style="background:#e53935;" onclick="cancelImage()">✖</button>
+        <button class="icon-btn" style="background:#e53935;" onclick="cancelImage()"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div id="recordingBar">
         <span class="rec-dot"></span>
@@ -324,19 +160,173 @@
         <button id="cancelRecBtn" onclick="cancelRecording()">إلغاء</button>
         <button id="sendRecBtn" onclick="stopAndSendRecording()">إرسال</button>
       </div>
+      <div id="emojiPicker"></div>
+      <div id="mentionDropdown"></div>
       <div class="input-box">
-        <button class="attach-btn" onclick="document.getElementById('fileInput').click()" title="إرفاق صورة">📎</button>
-        <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileSelect(event)">
-        <input type="text" id="messageInput" placeholder="اكتب رسالة..." onkeypress="handleKeyPress(event)" oninput="notifyTyping()">
-        <button class="mic-btn" id="micBtn" onclick="toggleRecording()" title="رسالة صوتية">🎤</button>
-        <button onclick="sendMessage()">➤</button>
+        <button class="attach-btn" onclick="document.getElementById('fileInput').click()" title="إرفاق ملف/صورة"><i class="fa-solid fa-paperclip"></i></button>
+        <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.txt,.zip" style="display:none" onchange="handleFileSelect(event)">
+        <button class="attach-btn" onclick="openContactShareModal()" title="مشاركة جهة اتصال"><i class="fa-solid fa-address-card"></i></button>
+        <button class="attach-btn" onclick="toggleEmojiPicker()" title="إيموجي"><i class="fa-solid fa-face-smile"></i></button>
+        <button class="stt-dictate-btn" id="sttDictateBtn" onclick="toggleVoiceDictation()" title="تحويل الكلام إلى نص (Web Speech)"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+        <button class="attach-btn" onclick="sendLocation()" title="مشاركة الموقع"><i class="fa-solid fa-location-dot"></i></button>
+        <input type="text" id="messageInput" placeholder="اكتب رسالة..." onkeypress="handleKeyPress(event)" oninput="handleMessageInput()">
+        <button class="mic-btn" id="micBtn" onclick="toggleRecording()" title="رسالة صوتية"><i class="fa-solid fa-microphone"></i></button>
+        <button onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
       </div>
     </div>
   </div>
 
+  <!-- ================= PROFILE MODAL ================= -->
+  <div class="modal-overlay" id="profileModal">
+    <div class="modal-box">
+      <h3><i class="fa-solid fa-user"></i> ملفي الشخصي</h3>
+      <div class="group-avatar-upload">
+        <div class="preview-circle" id="profileAvatarPreview" onclick="document.getElementById('avatarFileInput').click()"><i class="fa-solid fa-user"></i></div>
+        <span style="color:#aebac1; font-size:12px;">اضغط على الصورة لتغييرها</span>
+      </div>
+      <input type="text" id="displayNameInput" placeholder="اسم العرض (يظهر للآخرين)">
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeProfileModal()">إلغاء</button>
+        <button class="modal-confirm" onclick="saveProfileName()">حفظ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SETTINGS MODAL ================= -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-box">
+      <h3><i class="fa-solid fa-gear"></i> إعدادات التطبيق</h3>
+      
+      <div style="margin-bottom: 12px;">
+        <label style="color:#aebac1; font-size:12px; display:block; margin-bottom:6px;">🎨 ثيم ألوان التطبيق:</label>
+        <div class="color-swatches">
+          <div class="color-swatch active" style="background:#25d366;" onclick="applyColorTheme('#25d366', '#00a884', '#005c4b')" title="أخضر واتساب"></div>
+          <div class="color-swatch" style="background:#53bdeb;" onclick="applyColorTheme('#53bdeb', '#0288d1', '#0288d1')" title="أزرق سمائي"></div>
+          <div class="color-swatch" style="background:#9c27b0;" onclick="applyColorTheme('#9c27b0', '#7b1fa2', '#4a148c')" title="بنفسجي ملكي"></div>
+          <div class="color-swatch" style="background:#f59e0b;" onclick="applyColorTheme('#f59e0b', '#d97706', '#78350f')" title="ذهبي دافئ"></div>
+          <div class="color-swatch" style="background:#ec4899;" onclick="applyColorTheme('#ec4899', '#be185d', '#831843')" title="وردي زاهي"></div>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 12px;">
+        <label style="color:#aebac1; font-size:12px; display:block; margin-bottom:6px;">🔤 حجم الخط:</label>
+        <select id="fontSizeSelect" onchange="changeFontSize(this.value)">
+          <option value="medium">متوسط (افتراضي)</option>
+          <option value="small">صغير</option>
+          <option value="large">كبير</option>
+        </select>
+      </div>
+
+      <div class="settings-item" onclick="openStatsModal()">
+        <span><i class="fa-solid fa-chart-pie"></i> إحصائيات المحادثات</span>
+        <span><i class="fa-solid fa-chevron-left"></i></span>
+      </div>
+
+      <div class="settings-item" onclick="exportBackupData()">
+        <span><i class="fa-solid fa-download"></i> تصدير نسخة احتياطية (JSON)</span>
+        <span><i class="fa-solid fa-file-export"></i></span>
+      </div>
+
+      <div class="settings-item" onclick="document.getElementById('importBackupInput').click()">
+        <span><i class="fa-solid fa-upload"></i> استيراد نسخة احتياطية</span>
+        <span><i class="fa-solid fa-file-import"></i></span>
+        <input type="file" id="importBackupInput" accept=".json" style="display:none;" onchange="importBackupData(event)">
+      </div>
+
+      <div class="settings-item" onclick="openSecurityRulesModal()">
+        <span><i class="fa-solid fa-shield-halved"></i> قواعد الأمان وتشفير E2EE</span>
+        <span><i class="fa-solid fa-lock"></i></span>
+      </div>
+
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeSettingsModal()">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= CONTACT SHARE MODAL ================= -->
+  <div class="modal-overlay" id="contactShareModal">
+    <div class="modal-box">
+      <h3><i class="fa-solid fa-address-card"></i> مشاركة جهة اتصال</h3>
+      <input type="text" id="contactSearchInput" placeholder="ابحث أو أدخل ID شخص..." oninput="renderContactShareList()">
+      <div id="contactShareList" style="max-height:200px; overflow-y:auto; margin-bottom:10px;"></div>
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeContactShareModal()">إلغاء</button>
+        <button class="modal-confirm" onclick="sendCustomContactShare()">إرسال ID يدوي</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= STATS MODAL ================= -->
+  <div class="modal-overlay" id="statsModal">
+    <div class="modal-box">
+      <h3><i class="fa-solid fa-chart-pie"></i> إحصائيات المحادثات</h3>
+      <div id="statsContent"></div>
+      <div class="modal-actions">
+        <button class="modal-confirm" onclick="closeStatsModal()">تم</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SECURITY & E2EE RULES MODAL ================= -->
+  <div class="modal-overlay" id="securityRulesModal">
+    <div class="modal-box">
+      <h3><i class="fa-solid fa-shield-halved"></i> Firebase Security Rules & E2EE</h3>
+      <p style="color:#aebac1; font-size:12px; margin-bottom:8px;">انسخ هذه القواعد وضِعها في <b>Firebase Console ➔ Realtime Database ➔ Rules</b> لحماية بياناتك من الوصول العشوائي:</p>
+      <textarea id="firebaseRulesText" readonly style="height:150px; font-family:monospace; font-size:11px; direction:ltr; text-align:left;"></textarea>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+        <button class="modal-confirm" onclick="copyFirebaseRules()" style="font-size:11px;"><i class="fa-solid fa-copy"></i> نسخ القواعد</button>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeSecurityRulesModal()">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= CHAT ROW ACTIONS (pin/archive/folder/block) ================= -->
+  <div class="action-sheet-overlay" id="chatRowSheetOverlay" onclick="if(event.target===this) closeChatRowSheet()">
+    <div class="action-sheet" id="chatRowSheetContent"></div>
+  </div>
+
+  <!-- ================= FORWARD PICKER MODAL ================= -->
+  <div class="modal-overlay" id="forwardModal">
+    <div class="modal-box">
+      <h3><i class="fa-solid fa-share"></i> إعادة توجيه إلى</h3>
+      <div id="forwardList" style="max-height:240px; overflow-y:auto;"></div>
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeForwardModal()">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= DISAPPEARING MESSAGES MODAL ================= -->
+  <div class="modal-overlay" id="disappearModal">
+    <div class="modal-box">
+      <h3><i class="fa-solid fa-hourglass-half"></i> الرسائل المؤقتة</h3>
+      <p style="color:#aebac1; font-size:12px; margin-bottom:10px;">الرسائل الجديدة في هذه المحادثة ستختفي تلقائياً بعد المدة المختارة.</p>
+      <select id="disappearSelect">
+        <option value="0">إيقاف (افتراضي)</option>
+        <option value="300000">5 دقائق</option>
+        <option value="3600000">ساعة واحدة</option>
+        <option value="86400000">24 ساعة</option>
+        <option value="604800000">7 أيام</option>
+      </select>
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeDisappearModal()">إلغاء</button>
+        <button class="modal-confirm" onclick="saveDisappearSetting()">حفظ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= GROUP MODAL ================= -->
   <div class="modal-overlay" id="groupModal">
     <div class="modal-box">
-      <h3>👥 إنشاء مجموعة جديدة</h3>
+      <h3><i class="fa-solid fa-users"></i> إنشاء مجموعة جديدة</h3>
+      <div class="group-avatar-upload">
+        <div class="preview-circle" id="groupAvatarPreview" onclick="document.getElementById('groupAvatarInput').click()"><i class="fa-solid fa-camera"></i></div>
+        <input type="file" id="groupAvatarInput" accept="image/*" style="display:none" onchange="handleGroupAvatarSelect(event)">
+        <span style="color:#aebac1; font-size:12px;">اضغط لإضافة صورة للمجموعة (اختياري)</span>
+      </div>
       <input type="text" id="groupNameInput" placeholder="اسم المجموعة">
       <input type="text" id="groupMembersInput" placeholder="IDs الأعضاء مفصولة بفاصلة (,)">
       <div class="modal-actions">
@@ -346,10 +336,28 @@
     </div>
   </div>
 
+  <!-- ================= GROUP MEMBERS MODAL ================= -->
+  <div class="modal-overlay" id="membersModal">
+    <div class="modal-box">
+      <h3><i class="fa-solid fa-users"></i> أعضاء المجموعة</h3>
+      <div id="membersList" style="max-height:220px; overflow-y:auto; margin-bottom:10px;"></div>
+      <input type="text" id="addMemberInput" placeholder="ID عضو جديد">
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeMembersModal()">إغلاق</button>
+        <button class="modal-confirm" onclick="addGroupMember()">إضافة</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= LONG-PRESS ACTION SHEET ================= -->
+  <div class="action-sheet-overlay" id="actionSheetOverlay" onclick="if(event.target===this) closeActionSheet()">
+    <div class="action-sheet" id="actionSheetContent"></div>
+  </div>
+
   <!-- ================= ADD STATUS MODAL ================= -->
   <div class="modal-overlay" id="addStatusModal">
     <div class="modal-box">
-      <h3>➕ إضافة حالة (تختفي بعد 24 ساعة)</h3>
+      <h3><i class="fa-solid fa-plus"></i> إضافة حالة (تختفي بعد 24 ساعة)</h3>
       <input type="text" id="statusTextInput" placeholder="اكتب نصاً للحالة...">
       <input type="file" id="statusImageInput" accept="image/*">
       <div class="modal-actions">
@@ -362,7 +370,7 @@
   <!-- ================= LOCK SETTINGS MODAL ================= -->
   <div class="modal-overlay" id="lockSettingsModal">
     <div class="modal-box">
-      <h3 id="lockSettingsTitle">🔐 قفل التطبيق</h3>
+      <h3 id="lockSettingsTitle"><i class="fa-solid fa-lock"></i> قفل التطبيق</h3>
       <p style="color:#aebac1; font-size:12px; margin-bottom:10px;" id="lockSettingsDesc">اضبط رمز PIN من 4 أرقام لحماية التطبيق.</p>
       <div class="modal-actions">
         <button class="modal-cancel" onclick="closeLockSettingsModal()">إغلاق</button>
@@ -374,1001 +382,15 @@
   <!-- ================= STATUS VIEWER ================= -->
   <div id="statusViewerOverlay">
     <div class="sv-progress"><div class="sv-progress-fill" id="svProgressFill"></div></div>
-    <button class="sv-close" onclick="closeStatusViewer()">✖</button>
+    <button class="sv-close" onclick="closeStatusViewer()"><i class="fa-solid fa-xmark"></i></button>
     <div class="sv-header"><b id="svSenderName"></b><span id="svTime"></span></div>
     <div class="sv-content" id="svContent"></div>
   </div>
 
 </div>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyAIwD3ieFkZh53Us_GCNz6nos-wetw-QAw",
-    authDomain: "chatapppr-e8c2c.firebaseapp.com",
-    databaseURL: "https://chatapppr-e8c2c-default-rtdb.firebaseio.com",
-    projectId: "chatapppr-e8c2c",
-    storageBucket: "chatapppr-e8c2c.firebasestorage.app",
-    messagingSenderId: "103184004945",
-    appId: "1:103184004945:web:666285ddf537dfa3b94570",
-    measurementId: "G-Z2GMXKNK2T"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-
-  let myUserId = localStorage.getItem('whatsapp_private_myid');
-  if (!myUserId) {
-    myUserId = "ID_" + Math.floor(1000 + Math.random() * 9000);
-    localStorage.setItem('whatsapp_private_myid', myUserId);
-  }
-  document.getElementById("myIdDisplayList").innerText = myUserId;
-
-  // ================================================================
-  //   AVATAR
-  // ================================================================
-  function getMyAvatar() { return localStorage.getItem('whatsapp_avatar_' + myUserId) || null; }
-  function setMyAvatarLocal(dataUrl) { localStorage.setItem('whatsapp_avatar_' + myUserId, dataUrl); }
-  function renderMyAvatarBtn() {
-    const el = document.getElementById('myAvatarBtn');
-    const av = getMyAvatar();
-    el.innerHTML = av ? `<img class="avatar-img" src="${av}">` : '👤';
-  }
-  function handleAvatarSelect(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    if (file.size > 300 * 1024) { alert("⚠️ الصورة كبيرة جداً (الحد 300KB)."); return; }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setMyAvatarLocal(e.target.result);
-      db.ref('profiles/' + myUserId + '/avatar').set(e.target.result);
-      renderMyAvatarBtn();
-      renderChatsList();
-    };
-    reader.readAsDataURL(file);
-  }
-  const avatarCache = {};
-  function fetchAvatar(userId, cb) {
-    if (avatarCache[userId] !== undefined) { cb(avatarCache[userId]); return; }
-    db.ref('profiles/' + userId + '/avatar').once('value', (snap) => {
-      const val = snap.val() || null;
-      avatarCache[userId] = val;
-      cb(val);
-    });
-  }
-  renderMyAvatarBtn();
-
-  // ================================================================
-  //   APP LOCK (PIN)
-  // ================================================================
-  let pinBuffer = '';
-  let pinMode = 'unlock'; // 'unlock' | 'setup' | 'confirm' | 'change'
-  let pendingNewPin = '';
-
-  function getSavedPin() { return localStorage.getItem('whatsapp_app_pin'); }
-  function buildPinPad() {
-    const pad = document.getElementById('pinPad');
-    pad.innerHTML = '';
-    ['1','2','3','4','5','6','7','8','9','⌫','0','✓'].forEach(k => {
-      const btn = document.createElement('button');
-      btn.innerText = k;
-      btn.onclick = () => handlePinKey(k);
-      pad.appendChild(btn);
-    });
-  }
-  function handlePinKey(k) {
-    if (k === '⌫') { pinBuffer = pinBuffer.slice(0, -1); updatePinDots(); return; }
-    if (k === '✓') { submitPin(); return; }
-    if (pinBuffer.length < 4) { pinBuffer += k; updatePinDots(); }
-    if (pinBuffer.length === 4) submitPin();
-  }
-  function updatePinDots() {
-    document.querySelectorAll('#pinDots span').forEach((dot, i) => dot.classList.toggle('filled', i < pinBuffer.length));
-  }
-  function submitPin() {
-    const savedPin = getSavedPin();
-    if (pinMode === 'unlock') {
-      if (pinBuffer === savedPin) { hideLockScreen(); }
-      else { showPinError('رمز غير صحيح'); }
-    } else if (pinMode === 'setup') {
-      pendingNewPin = pinBuffer;
-      pinMode = 'confirm';
-      pinBuffer = ''; updatePinDots();
-      document.getElementById('lockTitle').innerText = 'أعد إدخال الرمز للتأكيد';
-    } else if (pinMode === 'confirm') {
-      if (pinBuffer === pendingNewPin) {
-        localStorage.setItem('whatsapp_app_pin', pinBuffer);
-        alert('✅ تم ضبط رمز القفل.');
-        hideLockScreen();
-      } else {
-        showPinError('الرمزان غير متطابقين، حاول مجدداً');
-        pinMode = 'setup'; pendingNewPin = '';
-        document.getElementById('lockTitle').innerText = 'أدخل رمز جديد';
-      }
-    }
-  }
-  function showPinError(msg) {
-    document.getElementById('lockError').innerText = msg;
-    pinBuffer = ''; updatePinDots();
-    setTimeout(() => { document.getElementById('lockError').innerText = ''; }, 1800);
-  }
-  function showLockScreenForUnlock() {
-    pinMode = 'unlock'; pinBuffer = '';
-    document.getElementById('lockTitle').innerText = 'أدخل رمز القفل';
-    document.getElementById('lockForgotBtn').style.display = 'block';
-    updatePinDots();
-    document.getElementById('lockScreen').style.display = 'flex';
-  }
-  function showLockScreenForSetup() {
-    pinMode = 'setup'; pinBuffer = ''; pendingNewPin = '';
-    document.getElementById('lockTitle').innerText = 'أدخل رمز جديد';
-    document.getElementById('lockForgotBtn').style.display = 'none';
-    updatePinDots();
-    document.getElementById('lockScreen').style.display = 'flex';
-  }
-  function hideLockScreen() { document.getElementById('lockScreen').style.display = 'none'; pinBuffer = ''; }
-  function forgotPin() {
-    if (confirm('⚠️ إعادة تعيين الرمز ستزيل القفل الحالي (بياناتك لن تُحذف). متابعة؟')) {
-      localStorage.removeItem('whatsapp_app_pin');
-      hideLockScreen();
-    }
-  }
-  function openLockSettings() {
-    const has = !!getSavedPin();
-    document.getElementById('lockSettingsDesc').innerText = has ? 'القفل مفعّل حالياً. يمكنك تغييره أو إزالته.' : 'اضبط رمز PIN من 4 أرقام لحماية التطبيق.';
-    document.getElementById('lockSettingsActionBtn').innerText = has ? 'تغيير الرمز' : 'ضبط رمز';
-    document.getElementById('lockSettingsModal').style.display = 'flex';
-    const modalBox = document.getElementById('lockSettingsModal').querySelector('.modal-box');
-    let removeBtn = document.getElementById('lockRemoveBtn');
-    if (has && !removeBtn) {
-      removeBtn = document.createElement('button');
-      removeBtn.id = 'lockRemoveBtn';
-      removeBtn.className = 'modal-cancel';
-      removeBtn.style.background = '#e53935';
-      removeBtn.innerText = 'إزالة القفل';
-      removeBtn.onclick = () => { localStorage.removeItem('whatsapp_app_pin'); closeLockSettingsModal(); alert('تم إزالة القفل.'); };
-      modalBox.querySelector('.modal-actions').prepend(removeBtn);
-    } else if (!has && removeBtn) { removeBtn.remove(); }
-  }
-  function closeLockSettingsModal() { document.getElementById('lockSettingsModal').style.display = 'none'; }
-  function startSetPin() { closeLockSettingsModal(); showLockScreenForSetup(); }
-
-  buildPinPad();
-  if (getSavedPin()) showLockScreenForUnlock();
-
-  // ================================================================
-  //   STATUS (24h disappearing)
-  // ================================================================
-  const STATUS_TTL = 24 * 60 * 60 * 1000;
-  function openAddStatusModal() { document.getElementById('addStatusModal').style.display = 'flex'; }
-  function closeAddStatusModal() {
-    document.getElementById('addStatusModal').style.display = 'none';
-    document.getElementById('statusTextInput').value = '';
-    document.getElementById('statusImageInput').value = '';
-  }
-  function publishStatus() {
-    const text = document.getElementById('statusTextInput').value.trim();
-    const file = document.getElementById('statusImageInput').files[0];
-    if (!text && !file) { alert('⚠️ اكتب نصاً أو اختر صورة.'); return; }
-    const push = (imageData) => {
-      db.ref('statuses/' + myUserId).push({ text, image: imageData || null, timestamp: Date.now() });
-      closeAddStatusModal();
-      renderStatusStrip();
-    };
-    if (file) {
-      if (file.size > 400 * 1024) { alert('⚠️ الصورة كبيرة جداً (الحد 400KB).'); return; }
-      const reader = new FileReader();
-      reader.onload = (e) => push(e.target.result);
-      reader.readAsDataURL(file);
-    } else { push(null); }
-  }
-
-  function getStatusPeople() {
-    const contacts = Object.keys(getContacts());
-    return [...new Set([myUserId, ...contacts])];
-  }
-
-  let currentStatusQueue = [];
-  let currentStatusIdx = 0;
-  let statusTimer = null;
-
-  function renderStatusStrip() {
-    const strip = document.getElementById('statusStrip');
-    strip.innerHTML = '';
-    const people = getStatusPeople();
-    let pending = people.length;
-    const results = {};
-    if (pending === 0) { strip.style.display = 'none'; return; }
-    people.forEach(pid => {
-      db.ref('statuses/' + pid).once('value', (snap) => {
-        const val = snap.val() || {};
-        const fresh = Object.entries(val).filter(([k,v]) => Date.now() - v.timestamp < STATUS_TTL);
-        results[pid] = fresh;
-        pending--;
-        if (pending === 0) buildStatusStripUI(results);
-      });
-    });
-  }
-
-  function buildStatusStripUI(results) {
-    const strip = document.getElementById('statusStrip');
-    strip.innerHTML = '';
-    strip.style.display = 'flex';
-
-    // "My status" first, with add button
-    const myItems = results[myUserId] || [];
-    const myItem = document.createElement('div');
-    myItem.className = 'status-item';
-    myItem.onclick = () => myItems.length ? openStatusViewer(myUserId, myItems) : openAddStatusModal();
-    const av = getMyAvatar();
-    myItem.innerHTML = `
-      <div class="status-ring ${myItems.length ? '' : 'seen'}" style="position:relative;">
-        ${av ? `<img class="status-avatar" src="${av}">` : `<div class="status-avatar-fallback">أنا</div>`}
-        <div class="status-add-badge">+</div>
-      </div>
-      <span class="status-label">حالتي</span>
-    `;
-    strip.appendChild(myItem);
-
-    Object.entries(results).forEach(([pid, items]) => {
-      if (pid === myUserId || items.length === 0) return;
-      const el = document.createElement('div');
-      el.className = 'status-item';
-      el.onclick = () => openStatusViewer(pid, items);
-      fetchAvatar(pid, (av2) => {
-        const ring = el.querySelector('.status-ring');
-        if (av2) ring.querySelector('.status-avatar-fallback')?.replaceWith(Object.assign(document.createElement('img'), { className: 'status-avatar', src: av2 }));
-      });
-      const initials = pid.replace(/[^A-Za-z0-9]/g, '').slice(-2).toUpperCase() || 'ID';
-      el.innerHTML = `
-        <div class="status-ring">
-          <div class="status-avatar-fallback">${initials}</div>
-        </div>
-        <span class="status-label">${pid}</span>
-      `;
-      strip.appendChild(el);
-    });
-  }
-
-  function openStatusViewer(senderId, items) {
-    currentStatusQueue = items.map(([k,v]) => ({ key: k, ...v, sender: senderId }));
-    currentStatusIdx = 0;
-    document.getElementById('statusViewerOverlay').style.display = 'flex';
-    showCurrentStatus();
-  }
-  function showCurrentStatus() {
-    if (currentStatusIdx >= currentStatusQueue.length) { closeStatusViewer(); return; }
-    const s = currentStatusQueue[currentStatusIdx];
-    document.getElementById('svSenderName').innerText = s.sender === myUserId ? 'أنت' : s.sender;
-    document.getElementById('svTime').innerText = formatTime(s.timestamp);
-    const content = document.getElementById('svContent');
-    content.innerHTML = '';
-    if (s.image) { const img = document.createElement('img'); img.src = s.image; content.appendChild(img); }
-    if (s.text) { const p = document.createElement('div'); p.innerText = s.text; p.style.marginTop = s.image ? '10px' : '0'; content.appendChild(p); }
-
-    const fill = document.getElementById('svProgressFill');
-    fill.style.width = '0%';
-    clearTimeout(statusTimer);
-    let start = Date.now();
-    const duration = 4000;
-    function tick() {
-      const pct = Math.min(100, ((Date.now() - start) / duration) * 100);
-      fill.style.width = pct + '%';
-      if (pct < 100) statusTimer = setTimeout(tick, 50);
-      else { currentStatusIdx++; showCurrentStatus(); }
-    }
-    tick();
-  }
-  function closeStatusViewer() {
-    clearTimeout(statusTimer);
-    document.getElementById('statusViewerOverlay').style.display = 'none';
-  }
-
-  // ================================================================
-  //   PWA SERVICE WORKER
-  // ================================================================
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(() => { /* not hosted with sw.js alongside, ignore */ });
-    });
-  }
-
-  let targetUserId = null;
-  let currentGroupId = null;
-  let chatRoomRef = null;
-  let presenceRef = null;
-  let typingRef = null;
-  let isMuted = false;
-  let darkMode = false;
-  let pendingImageData = null;
-  let typingTimeout = null;
-  let replyingTo = null;
-  const shownDateSeps = new Set();
-  const msgElements = {};
-
-  function requestNotifyPermission() {
-    if (!("Notification" in window)) { alert("⚠️ المتصفح لا يدعم الإشعارات."); return; }
-    Notification.requestPermission().then(p => {
-      alert(p === "granted" ? "✅ تم تفعيل الإشعارات." : "⚠️ لم يتم منح إذن الإشعارات.");
-    });
-  }
-  function notifyNewMessage(fromId, text) {
-    if (!("Notification" in window) || Notification.permission !== "granted") return;
-    if (document.visibilityState === "visible" && (targetUserId || currentGroupId)) return;
-    try { new Notification("💬 " + fromId, { body: text || "رسالة جديدة" }); } catch (e) {}
-  }
-
-  function getContacts() { try { return JSON.parse(localStorage.getItem('whatsapp_private_contacts') || '{}'); } catch(e){ return {}; } }
-  function saveContacts(c) { localStorage.setItem('whatsapp_private_contacts', JSON.stringify(c)); }
-  function upsertContact(id, lastText, ts) {
-    const contacts = getContacts();
-    contacts[id] = { id, lastText: lastText !== undefined ? lastText : (contacts[id]?.lastText || ''), ts: ts || Date.now(), type: 'dm' };
-    saveContacts(contacts);
-    renderChatsList();
-  }
-
-  function getMyGroups() { try { return JSON.parse(localStorage.getItem('whatsapp_private_groups') || '{}'); } catch(e){ return {}; } }
-  function saveMyGroups(g) { localStorage.setItem('whatsapp_private_groups', JSON.stringify(g)); }
-  function upsertGroupLocal(id, name, lastText, ts) {
-    const groups = getMyGroups();
-    groups[id] = { id, name: name || groups[id]?.name || id, lastText: lastText !== undefined ? lastText : (groups[id]?.lastText || ''), ts: ts || Date.now(), type: 'group' };
-    saveMyGroups(groups);
-    renderChatsList();
-  }
-
-  function getHiddenSet(roomId) {
-    try { return new Set(JSON.parse(localStorage.getItem('whatsapp_hidden_' + roomId) || '[]')); } catch(e){ return new Set(); }
-  }
-  function addHidden(roomId, key) {
-    const s = getHiddenSet(roomId);
-    s.add(key);
-    localStorage.setItem('whatsapp_hidden_' + roomId, JSON.stringify([...s]));
-  }
-
-  const presenceWatchers = {};
-
-  function renderChatsList() {
-    const contacts = getContacts();
-    const groups = getMyGroups();
-    const scroll = document.getElementById('chatsScroll');
-    const items = [...Object.values(contacts), ...Object.values(groups)].sort((a,b) => (b.ts||0) - (a.ts||0));
-
-    if (typeof renderStatusStrip === 'function') renderStatusStrip();
-
-    if (items.length === 0) {
-      scroll.innerHTML = '<div class="empty-chats">لا توجد محادثات بعد.<br>أدخل ID أي شخص أعلاه لبدء محادثة جديدة معه 👆</div>';
-      return;
-    }
-
-    scroll.innerHTML = '';
-    items.forEach(item => {
-      const row = document.createElement('div');
-      row.className = 'chat-row';
-      const isGroup = item.type === 'group';
-      row.onclick = () => isGroup ? openGroup(item.id) : openChat(item.id);
-
-      const label = isGroup ? item.name : item.id;
-      const initials = (label || '').replace(/[^A-Za-z0-9\u0600-\u06FF]/g, '').slice(-2).toUpperCase() || (isGroup ? 'GR' : 'ID');
-
-      row.innerHTML = `
-        <div class="chat-avatar ${isGroup ? 'group-avatar' : ''}">${isGroup ? '👥' : initials}${!isGroup ? `<span class="online-badge" id="badge_${item.id}"></span>` : ''}</div>
-        <div class="chat-info">
-          <div class="row1">
-            <span class="name">${isGroup ? '👥 ' : ''}${label}</span>
-            <span class="time">${item.ts ? new Date(item.ts).toLocaleTimeString('ar', {hour:'2-digit', minute:'2-digit'}) : ''}</span>
-          </div>
-          <div class="preview">${item.lastText || 'لا توجد رسائل بعد'}</div>
-        </div>
-      `;
-      scroll.appendChild(row);
-
-      if (!isGroup) {
-        fetchAvatar(item.id, (av) => {
-          if (av) {
-            const avatarDiv = row.querySelector('.chat-avatar');
-            const badge = avatarDiv.querySelector('.online-badge');
-            avatarDiv.innerHTML = `<img class="avatar-img" src="${av}">`;
-            if (badge) avatarDiv.appendChild(badge);
-          }
-        });
-      }
-
-      if (!isGroup && !presenceWatchers[item.id]) {
-        presenceWatchers[item.id] = db.ref('presence/' + item.id);
-        presenceWatchers[item.id].on('value', (snap) => {
-          const val = snap.val();
-          const online = !!(val && val.online);
-          const badge = document.getElementById('badge_' + item.id);
-          if (badge) badge.classList.toggle('online', online);
-        });
-      }
-    });
-  }
-
-  function startChatFromList() {
-    const input = document.getElementById('newChatIdInput');
-    const id = input.value.trim();
-    if (!id) { alert('⚠️ الرجاء إدخال ID.'); return; }
-    if (id === myUserId) { alert('⛔ لا يمكنك التواصل مع نفسك!'); return; }
-    input.value = '';
-    upsertContact(id, '', Date.now());
-    openChat(id);
-  }
-
-  function goBackToList() {
-    if (chatRoomRef) chatRoomRef.off();
-    if (presenceRef) presenceRef.off();
-    if (typingRef) typingRef.off();
-    targetUserId = null;
-    currentGroupId = null;
-    clearReply();
-    document.getElementById('searchBar').style.display = 'none';
-    document.getElementById('chatRoomScreen').style.display = 'none';
-    document.getElementById('chatsListScreen').style.display = 'flex';
-    renderChatsList();
-  }
-
-  function openGroupModal() { document.getElementById('groupModal').style.display = 'flex'; }
-  function closeGroupModal() {
-    document.getElementById('groupModal').style.display = 'none';
-    document.getElementById('groupNameInput').value = '';
-    document.getElementById('groupMembersInput').value = '';
-  }
-  function createGroup() {
-    const name = document.getElementById('groupNameInput').value.trim();
-    const membersRaw = document.getElementById('groupMembersInput').value.trim();
-    if (!name) { alert('⚠️ أدخل اسم المجموعة.'); return; }
-    const members = membersRaw.split(',').map(s => s.trim()).filter(Boolean);
-    members.push(myUserId);
-    const uniqueMembers = [...new Set(members)];
-    if (uniqueMembers.length < 2) { alert('⚠️ أضف عضو واحد على الأقل غيرك.'); return; }
-
-    const groupId = 'GRP_' + Math.random().toString(36).slice(2, 9).toUpperCase();
-    db.ref('groups/' + groupId + '/meta').set({ name, members: uniqueMembers, createdBy: myUserId, createdAt: Date.now() });
-    uniqueMembers.forEach(m => db.ref('user_groups/' + m + '/' + groupId).set(true));
-
-    upsertGroupLocal(groupId, name, '', Date.now());
-    closeGroupModal();
-    openGroup(groupId);
-  }
-
-  db.ref('user_groups/' + myUserId).on('child_added', (snap) => {
-    const groupId = snap.key;
-    if (getMyGroups()[groupId]) return;
-    db.ref('groups/' + groupId + '/meta').once('value', (metaSnap) => {
-      const meta = metaSnap.val();
-      if (meta) upsertGroupLocal(groupId, meta.name, '', Date.now());
-    });
-  });
-
-  function openGroup(groupId) {
-    currentGroupId = groupId;
-    targetUserId = null;
-
-    db.ref('groups/' + groupId + '/meta').once('value', (snap) => {
-      const meta = snap.val() || {};
-      document.getElementById('chatRoomTitle').innerText = '👥 ' + (meta.name || groupId);
-    });
-
-    document.getElementById('chatsListScreen').style.display = 'none';
-    document.getElementById('chatRoomScreen').style.display = 'flex';
-    document.getElementById('callButtonsGroup').style.display = 'none';
-    document.getElementById('peerStatusText').innerText = '👥 محادثة جماعية';
-    document.getElementById('peerStatusDot').classList.remove('online');
-
-    document.getElementById("messagesBox").innerHTML = "";
-    shownDateSeps.clear();
-    clearReply();
-
-    if (chatRoomRef) chatRoomRef.off();
-    if (presenceRef) presenceRef.off();
-    if (typingRef) typingRef.off();
-
-    chatRoomRef = db.ref('groups/' + groupId + '/messages');
-    const hidden = getHiddenSet('group_' + groupId);
-    chatRoomRef.on('child_added', (snapshot) => {
-      const data = snapshot.val();
-      if (hidden.has(snapshot.key)) return;
-      displayMessage(data, snapshot.key, true);
-      if (data.sender !== myUserId) {
-        playReceiveSound();
-        notifyNewMessage(data.sender, data.text || (data.image ? '📷 صورة' : (data.audio ? '🎤 رسالة صوتية' : '')));
-      }
-      const preview = (data.sender === myUserId ? 'أنت: ' : data.sender + ': ') + (data.image ? '📷 صورة' : (data.audio ? '🎤 رسالة صوتية' : data.text));
-      upsertGroupLocal(groupId, undefined, preview, data.timestamp || Date.now());
-    });
-    chatRoomRef.on('child_removed', (snapshot) => { removeMessageFromDom(snapshot.key); });
-  }
-
-  function isGroupChat() { return !!currentGroupId; }
-
-  function getRoomId(userA, userB) { return [userA, userB].sort().join("_"); }
-
-  function openChat(peerId) {
-    if (!peerId) return;
-    if (peerId === myUserId) { alert("⛔ لا يمكنك التواصل مع نفسك!"); return; }
-
-    targetUserId = peerId;
-    currentGroupId = null;
-    upsertContact(peerId, undefined, Date.now());
-
-    document.getElementById('chatsListScreen').style.display = 'none';
-    document.getElementById('chatRoomScreen').style.display = 'flex';
-    document.getElementById('callButtonsGroup').style.display = 'flex';
-    document.getElementById('chatRoomTitle').innerText = peerId;
-    fetchAvatar(peerId, (av) => {
-      if (av) document.getElementById('chatRoomTitle').innerHTML = `<img class="peer-avatar-small" src="${av}" style="vertical-align:middle;margin-left:6px;">${peerId}`;
-    });
-
-    const roomId = getRoomId(myUserId, targetUserId);
-
-    document.getElementById("messagesBox").innerHTML = "";
-    shownDateSeps.clear();
-    clearReply();
-
-    if (chatRoomRef) chatRoomRef.off();
-    if (presenceRef) presenceRef.off();
-    if (typingRef) typingRef.off();
-
-    chatRoomRef = db.ref("private_chats/" + roomId);
-    const hidden = getHiddenSet(roomId);
-    chatRoomRef.on("child_added", (snapshot) => {
-      const data = snapshot.val();
-      if (hidden.has(snapshot.key)) return;
-      displayMessage(data, snapshot.key, false);
-      if (data.sender !== myUserId) {
-        playReceiveSound();
-        notifyNewMessage(data.sender, data.text || (data.image ? '📷 صورة' : (data.audio ? '🎤 رسالة صوتية' : '')));
-        chatRoomRef.child(snapshot.key).child('read').set(true);
-      }
-      const preview = data.image ? '📷 صورة' : (data.audio ? '🎤 رسالة صوتية' : data.text);
-      upsertContact(targetUserId, preview, data.timestamp || Date.now());
-    });
-    chatRoomRef.on("child_changed", (snapshot) => {
-      const data = snapshot.val();
-      updateTickForMessage(snapshot.key, data.read);
-    });
-    chatRoomRef.on("child_removed", (snapshot) => { removeMessageFromDom(snapshot.key); });
-
-    presenceRef = db.ref("presence/" + targetUserId);
-    presenceRef.on("value", (snap) => {
-      const val = snap.val();
-      const online = !!(val && val.online);
-      document.getElementById("peerStatusDot").classList.toggle("online", online);
-      document.getElementById("peerStatusText").innerHTML = online
-        ? `🟢 ${targetUserId} متصل الآن`
-        : `⚪ ${targetUserId} غير متصل • آخر ظهور: ${val?.lastSeen ? new Date(val.lastSeen).toLocaleString('ar') : 'غير معروف'}`;
-    });
-
-    typingRef = db.ref("typing/" + roomId + "/" + targetUserId);
-    typingRef.on("value", (snap) => {
-      const isTyping = !!snap.val();
-      document.getElementById("typingName").innerText = targetUserId;
-      document.getElementById("typingIndicator").style.display = isTyping ? "flex" : "none";
-    });
-  }
-
-  function toggleTheme() {
-    darkMode = !darkMode;
-    if (darkMode) {
-      document.body.style.background = '#e5ddd5';
-      document.querySelector('.chat-container').style.background = '#ffffff';
-      document.querySelector('.header').style.background = '#075e54';
-      document.querySelector('.header').style.borderBottom = '1px solid #128c7e';
-      document.querySelector('.header-title h2').style.color = '#ffffff';
-      document.querySelector('.messages-box').style.background = '#e5ddd5';
-      document.querySelectorAll('.message.sent').forEach(el => { el.style.background = '#dcf8c6'; el.style.color = '#111b21'; });
-      document.querySelectorAll('.message.received').forEach(el => { el.style.background = '#ffffff'; el.style.color = '#111b21'; });
-      document.querySelector('.input-area').style.background = '#ffffff';
-      document.querySelector('.input-box input[type=text]').style.background = '#f0f2f5';
-      document.querySelector('.input-box input[type=text]').style.color = '#111b21';
-      document.getElementById('themeToggleBtn').innerText = '🌙';
-    } else {
-      document.body.style.background = '#0b1419';
-      document.querySelector('.chat-container').style.background = '#111b21';
-      document.querySelector('.header').style.background = '#1f2c33';
-      document.querySelector('.header').style.borderBottom = '1px solid #2a3b44';
-      document.querySelector('.header-title h2').style.color = '#e9edef';
-      document.querySelector('.messages-box').style.background = '#0b1419';
-      document.querySelectorAll('.message.sent').forEach(el => { el.style.background = '#005c4b'; el.style.color = '#e9edef'; });
-      document.querySelectorAll('.message.received').forEach(el => { el.style.background = '#1f2c33'; el.style.color = '#e9edef'; });
-      document.querySelector('.input-area').style.background = '#1f2c33';
-      document.querySelector('.input-box input[type=text]').style.background = '#2a3b44';
-      document.querySelector('.input-box input[type=text]').style.color = '#e9edef';
-      document.getElementById('themeToggleBtn').innerText = '☀️';
-    }
-  }
-
-  function toggleMute() {
-    isMuted = !isMuted;
-    document.getElementById('muteBtn').innerHTML = isMuted ? '🔕 مكتوم' : '🔇 كتم';
-    document.getElementById('muteBtn').style.background = isMuted ? '#e53935' : '#546e7a';
-  }
-  let audioCtx = null;
-  function beep(freq, duration) {
-    if (isMuted) return;
-    try {
-      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.frequency.value = freq;
-      osc.connect(gain); gain.connect(audioCtx.destination);
-      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-      osc.start();
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-      osc.stop(audioCtx.currentTime + duration);
-    } catch (e) {}
-  }
-  const playReceiveSound = () => beep(800, 0.12);
-  const playSendSound = () => beep(550, 0.08);
-
-  const myPresenceRef = db.ref("presence/" + myUserId);
-  myPresenceRef.set({ online: true, lastSeen: Date.now() });
-  myPresenceRef.onDisconnect().set({ online: false, lastSeen: Date.now() });
-  window.addEventListener("beforeunload", () => { myPresenceRef.set({ online: false, lastSeen: Date.now() }); });
-
-  function notifyTyping() {
-    if (!targetUserId) return;
-    const roomId = getRoomId(myUserId, targetUserId);
-    const myTypingRef = db.ref("typing/" + roomId + "/" + myUserId);
-    myTypingRef.set(true);
-    if (typingTimeout) clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => myTypingRef.set(false), 2000);
-  }
-
-  function setReply(key, sender, text) {
-    replyingTo = { key, sender, text: text || '' };
-    document.getElementById('rpSenderLabel').innerText = sender === myUserId ? 'أنت' : sender;
-    document.getElementById('rpTextLabel').innerText = text ? (text.length > 60 ? text.slice(0,60) + '…' : text) : '📎 مرفق';
-    document.getElementById('replyPreviewBar').style.display = 'flex';
-    document.getElementById('messageInput').focus();
-  }
-  function clearReply() {
-    replyingTo = null;
-    document.getElementById('replyPreviewBar').style.display = 'none';
-  }
-
-  function sendMessage() {
-    if (!targetUserId && !currentGroupId) { alert("⚠️ افتح محادثة أولاً."); return; }
-    const input = document.getElementById("messageInput");
-    const text = input.value.trim();
-    if (text === "" && !pendingImageData) return;
-
-    const payload = { sender: myUserId, text: text, timestamp: Date.now() };
-    if (pendingImageData) payload.image = pendingImageData;
-    if (!isGroupChat()) payload.read = false;
-    if (replyingTo) payload.replyTo = { sender: replyingTo.sender, text: replyingTo.text };
-
-    chatRoomRef.push(payload);
-    playSendSound();
-    input.value = "";
-    cancelImage();
-    clearReply();
-
-    if (!isGroupChat()) {
-      const roomId = getRoomId(myUserId, targetUserId);
-      db.ref("typing/" + roomId + "/" + myUserId).set(false);
-    }
-  }
-  function handleKeyPress(e) { if (e.key === "Enter") sendMessage(); }
-
-  function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    if (file.size > 500 * 1024) { alert("⚠️ الصورة كبيرة جداً (الحد 500KB)."); return; }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      pendingImageData = e.target.result;
-      document.getElementById("imgPreviewThumb").src = pendingImageData;
-      document.getElementById("imgPreviewBar").style.display = "flex";
-    };
-    reader.readAsDataURL(file);
-  }
-  function cancelImage() {
-    pendingImageData = null;
-    document.getElementById("fileInput").value = "";
-    document.getElementById("imgPreviewBar").style.display = "none";
-  }
-
-  let mediaRecorder = null, recordedChunks = [], recordingStream = null, recTimerInterval = null, recSeconds = 0;
-
-  async function toggleRecording() {
-    if (mediaRecorder && mediaRecorder.state === 'recording') { stopAndSendRecording(); return; }
-    if (!targetUserId && !currentGroupId) { alert("⚠️ افتح محادثة أولاً."); return; }
-    try {
-      recordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      recordedChunks = [];
-      mediaRecorder = new MediaRecorder(recordingStream);
-      mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
-      mediaRecorder.start();
-      document.getElementById('micBtn').classList.add('recording');
-      document.getElementById('recordingBar').style.display = 'flex';
-      recSeconds = 0; updateRecTimer();
-      recTimerInterval = setInterval(() => { recSeconds++; updateRecTimer(); }, 1000);
-    } catch (err) { alert("❌ تعذر الوصول للميكروفون: " + err.message); }
-  }
-  function updateRecTimer() {
-    const m = Math.floor(recSeconds / 60);
-    const s = (recSeconds % 60).toString().padStart(2, '0');
-    document.getElementById('recTimer').innerText = `🎙️ جارٍ التسجيل... ${m}:${s}`;
-  }
-  function stopRecordingInternal(onStopped) {
-    if (!mediaRecorder) return;
-    mediaRecorder.onstop = () => {
-      if (recordingStream) recordingStream.getTracks().forEach(t => t.stop());
-      clearInterval(recTimerInterval);
-      document.getElementById('micBtn').classList.remove('recording');
-      document.getElementById('recordingBar').style.display = 'none';
-      onStopped();
-    };
-    mediaRecorder.stop();
-  }
-  function cancelRecording() { stopRecordingInternal(() => { recordedChunks = []; mediaRecorder = null; }); }
-  function stopAndSendRecording() {
-    stopRecordingInternal(() => {
-      if (recordedChunks.length === 0) { mediaRecorder = null; return; }
-      const blob = new Blob(recordedChunks, { type: 'audio/webm' });
-      if (blob.size > 700 * 1024) { alert("⚠️ الرسالة الصوتية طويلة جداً."); mediaRecorder = null; return; }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const payload = { sender: myUserId, audio: e.target.result, timestamp: Date.now() };
-        if (!isGroupChat()) payload.read = false;
-        if (replyingTo) payload.replyTo = { sender: replyingTo.sender, text: replyingTo.text };
-        chatRoomRef.push(payload);
-        playSendSound();
-        clearReply();
-      };
-      reader.readAsDataURL(blob);
-      mediaRecorder = null;
-    });
-  }
-
-  function deleteMessage(key, isMine) {
-    const roomKey = isGroupChat() ? ('group_' + currentGroupId) : getRoomId(myUserId, targetUserId);
-    if (isMine) {
-      if (confirm("🗑️ حذف هذه الرسالة عند الجميع؟")) chatRoomRef.child(key).remove();
-    } else {
-      if (confirm("🗑️ حذف هذه الرسالة عندك فقط؟")) { addHidden(roomKey, key); removeMessageFromDom(key); }
-    }
-  }
-  function removeMessageFromDom(key) {
-    const el = msgElements[key];
-    if (el) { el.remove(); delete msgElements[key]; }
-  }
-  function updateTickForMessage(key, read) {
-    const el = msgElements[key];
-    if (!el) return;
-    const tick = el.querySelector('.tick');
-    if (tick) { tick.innerText = read ? '✓✓' : '✓'; tick.classList.toggle('read', !!read); }
-  }
-
-  function toggleSearchBar() {
-    const bar = document.getElementById('searchBar');
-    const btn = document.getElementById('searchToggleBtn');
-    const show = bar.style.display !== 'flex';
-    bar.style.display = show ? 'flex' : 'none';
-    btn.classList.toggle('active-search', show);
-    if (show) { document.getElementById('searchInput').focus(); } else { document.getElementById('searchInput').value=''; performSearch(); }
-  }
-  function performSearch() {
-    const q = document.getElementById('searchInput').value.trim().toLowerCase();
-    let count = 0;
-    Object.entries(msgElements).forEach(([key, el]) => {
-      const text = (el.dataset.text || '').toLowerCase();
-      const match = !q || text.includes(q);
-      el.classList.toggle('dimmed', !!q && !match);
-      if (q && match) count++;
-    });
-    document.getElementById('searchCount').innerText = q ? `${count} نتيجة` : '';
-  }
-
-  function formatTime(ts) { return new Date(ts).toLocaleTimeString('ar', { hour:'2-digit', minute:'2-digit' }); }
-  function formatDateLabel(ts) {
-    const d = new Date(ts); const today = new Date();
-    const yesterday = new Date(); yesterday.setDate(today.getDate()-1);
-    const sameDay = (a,b) => a.toDateString() === b.toDateString();
-    if (sameDay(d, today)) return "اليوم";
-    if (sameDay(d, yesterday)) return "أمس";
-    return d.toLocaleDateString('ar', { year:'numeric', month:'long', day:'numeric' });
-  }
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
-  function linkifyText(text) { return text.replace(urlRegex, url => `<a class="chat-link" href="${url}" target="_blank" rel="noopener">${url}</a>`); }
-  function extractFirstUrl(text) { const match = text.match(urlRegex); return match ? match[0] : null; }
-
-  function displayMessage(data, msgKey, inGroup) {
-    const messagesBox = document.getElementById("messagesBox");
-    const dayLabel = formatDateLabel(data.timestamp || Date.now());
-    if (!shownDateSeps.has(dayLabel)) {
-      shownDateSeps.add(dayLabel);
-      const sep = document.createElement("div");
-      sep.className = "date-sep";
-      sep.innerText = dayLabel;
-      messagesBox.appendChild(sep);
-    }
-
-    const isSent = data.sender === myUserId;
-    const wrap = document.createElement("div");
-    wrap.className = "msg-wrap " + (isSent ? "sent-wrap" : "received-wrap");
-    wrap.dataset.text = data.text || '';
-
-    if (inGroup && !isSent) {
-      const lbl = document.createElement('div');
-      lbl.className = 'msg-sender-label';
-      lbl.innerText = data.sender;
-      wrap.appendChild(lbl);
-    }
-
-    const msgDiv = document.createElement("div");
-    msgDiv.classList.add("message", isSent ? "sent" : "received");
-
-    if (data.replyTo) {
-      const rq = document.createElement('div');
-      rq.className = 'reply-quote';
-      rq.innerHTML = `<span class="rq-sender">${data.replyTo.sender === myUserId ? 'أنت' : data.replyTo.sender}</span>${(data.replyTo.text || '📎 مرفق').slice(0,80)}`;
-      msgDiv.appendChild(rq);
-    }
-
-    if (data.text) {
-      const textSpan = document.createElement('span');
-      textSpan.innerHTML = linkifyText(data.text);
-      msgDiv.appendChild(textSpan);
-      const url = extractFirstUrl(data.text);
-      if (url) {
-        const preview = document.createElement("div");
-        preview.className = "link-preview";
-        preview.innerText = "🔗 " + url;
-        msgDiv.appendChild(preview);
-      }
-    }
-    if (data.image) {
-      const img = document.createElement("img");
-      img.src = data.image; img.className = "chat-img";
-      img.onclick = () => window.open(data.image, "_blank");
-      msgDiv.appendChild(img);
-    }
-    if (data.audio) {
-      const audio = document.createElement("audio");
-      audio.src = data.audio; audio.controls = true; audio.className = "chat-audio";
-      msgDiv.appendChild(audio);
-    }
-
-    wrap.appendChild(msgDiv);
-
-    const meta = document.createElement("div");
-    meta.className = "msg-meta";
-    meta.innerHTML = `<span>${formatTime(data.timestamp || Date.now())}</span>`;
-    if (isSent && !inGroup) {
-      const tick = document.createElement('span');
-      tick.className = 'tick' + (data.read ? ' read' : '');
-      tick.innerText = data.read ? '✓✓' : '✓';
-      meta.appendChild(tick);
-    }
-    wrap.appendChild(meta);
-
-    const actions = document.createElement('div');
-    actions.className = 'msg-actions';
-    const replyBtn = document.createElement('button');
-    replyBtn.innerText = '↩️ رد';
-    replyBtn.onclick = () => setReply(msgKey, data.sender, data.text || (data.image ? '📷 صورة' : (data.audio ? '🎤 رسالة صوتية' : '')));
-    actions.appendChild(replyBtn);
-    const delBtn = document.createElement('button');
-    delBtn.innerText = '🗑 حذف';
-    delBtn.onclick = () => deleteMessage(msgKey, isSent);
-    actions.appendChild(delBtn);
-    wrap.appendChild(actions);
-
-    if (msgKey) {
-      const reactionsRoomPath = inGroup ? ('groups_reactions/' + currentGroupId + '/' + msgKey) : ('private_chats_reactions/' + getRoomId(myUserId, targetUserId) + '/' + msgKey);
-      const reactionsRef = db.ref(reactionsRoomPath);
-      const reactionsShown = document.createElement("div");
-      reactionsShown.className = "reactions-shown";
-      wrap.appendChild(reactionsShown);
-      reactionsRef.on("value", (snap) => {
-        const vals = snap.val() || {};
-        reactionsShown.innerHTML = Object.values(vals).join(" ");
-      });
-      const bar = document.createElement("div");
-      bar.className = "reactions-bar";
-      ["❤️", "😂", "😮", "👍"].forEach((emoji) => {
-        const btn = document.createElement("button");
-        btn.innerText = emoji;
-        btn.onclick = () => reactionsRef.child(myUserId).set(emoji);
-        bar.appendChild(btn);
-      });
-      wrap.appendChild(bar);
-    }
-
-    messagesBox.appendChild(wrap);
-    msgElements[msgKey] = wrap;
-    messagesBox.scrollTop = messagesBox.scrollHeight;
-  }
-
-  function clearChat() {
-    if (!chatRoomRef) { alert("⚠️ لا توجد محادثة لمسحها."); return; }
-    if (confirm("🗑️ هل أنت متأكد من مسح جميع رسائل هذه المحادثة؟")) {
-      chatRoomRef.remove();
-      document.getElementById("messagesBox").innerHTML = "";
-      shownDateSeps.clear();
-      Object.keys(msgElements).forEach(k => delete msgElements[k]);
-    }
-  }
-
-  let localStream = null, peerConnection = null;
-  const iceServers = { iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }] };
-
-  const incomingCallsRef = db.ref("calls/" + myUserId);
-  incomingCallsRef.on("value", async (snapshot) => {
-    const data = snapshot.val();
-    if (!data) return;
-    if (data.offer && !peerConnection) {
-      const accept = confirm(`📞 مكالمة ${data.isVideo ? 'فيديو' : 'صوتية'} واردة من ${data.callerId}. هل تريد الرد؟`);
-      if (!accept) { incomingCallsRef.remove(); return; }
-      openChat(data.callerId);
-      const isVideo = data.isVideo;
-      showCallUI(isVideo);
-      try {
-        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: isVideo });
-        if (isVideo) document.getElementById("localVideo").srcObject = localStream;
-        peerConnection = new RTCPeerConnection(iceServers);
-        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-        peerConnection.ontrack = (event) => { document.getElementById("remoteVideo").srcObject = event.streams[0]; };
-        peerConnection.onicecandidate = (event) => { if (event.candidate) db.ref(`calls/${targetUserId}/candidates`).push(JSON.stringify(event.candidate)); };
-        await peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(data.offer)));
-        const answer = await peerConnection.createAnswer();
-        await peerConnection.setLocalDescription(answer);
-        await db.ref(`calls/${targetUserId}/answer`).set(JSON.stringify(answer));
-      } catch (err) { alert("❌ فشل الوصول للكاميرا/الميكروفون: " + err.message); endCall(); }
-    }
-    if (data.answer && peerConnection && !peerConnection.remoteDescription) {
-      await peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(data.answer)));
-    }
-  });
-  db.ref(`calls/${myUserId}/candidates`).on("child_added", async (snapshot) => {
-    if (peerConnection && snapshot.val()) await peerConnection.addIceCandidate(new RTCIceCandidate(JSON.parse(snapshot.val())));
-  });
-
-  async function startCall(isVideo) {
-    if (!targetUserId) { alert("⚠️ افتح محادثة فردية أولاً (المكالمات غير متاحة للمجموعات)."); return; }
-    showCallUI(isVideo);
-    try {
-      localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: isVideo });
-      if (isVideo) document.getElementById("localVideo").srcObject = localStream;
-      peerConnection = new RTCPeerConnection(iceServers);
-      localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-      peerConnection.ontrack = (event) => { document.getElementById("remoteVideo").srcObject = event.streams[0]; };
-      peerConnection.onicecandidate = (event) => { if (event.candidate) db.ref(`calls/${targetUserId}/candidates`).push(JSON.stringify(event.candidate)); };
-      const offer = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offer);
-      await db.ref(`calls/${targetUserId}`).remove();
-      await db.ref(`calls/${targetUserId}`).set({ callerId: myUserId, offer: JSON.stringify(offer), isVideo });
-    } catch (err) { alert("❌ تعذر إجراء المكالمة: " + err.message); endCall(); }
-  }
-  function showCallUI(isVideo) {
-    document.getElementById("voiceCallBtn").style.display = "none";
-    document.getElementById("videoCallBtn").style.display = "none";
-    document.getElementById("endCallBtn").style.display = "flex";
-    if (isVideo) { document.getElementById("video-container").style.display = "flex"; document.getElementById("call-status").style.display = "none"; }
-    else { document.getElementById("video-container").style.display = "none"; document.getElementById("call-status").style.display = "block"; document.getElementById("call-status").innerHTML = "🎙️ جارٍ الاتصال الصوتي..."; }
-  }
-  function endCall() {
-    if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
-    if (peerConnection) { peerConnection.close(); peerConnection = null; }
-    if (myUserId) db.ref(`calls/${myUserId}`).remove();
-    if (targetUserId) db.ref(`calls/${targetUserId}`).remove();
-    document.getElementById("video-container").style.display = "none";
-    document.getElementById("call-status").style.display = "none";
-    document.getElementById("voiceCallBtn").style.display = "flex";
-    document.getElementById("videoCallBtn").style.display = "flex";
-    document.getElementById("endCallBtn").style.display = "none";
-  }
-
-  (function autoConnectFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    const peer = params.get('peer');
-    if (peer) setTimeout(() => openChat(peer), 400);
-  })();
-
-  renderChatsList();
-  console.log(`🔐 واتساب خاص جاهز - معرفك: ${myUserId}`);
-</script>
+<!-- Application Main Script -->
+<script src="script.js"></script>
 
 </body>
 </html>

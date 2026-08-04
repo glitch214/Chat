@@ -1,10 +1,8 @@
-// Simple service worker: caches the app shell so it can install as a PWA
-// and open instantly on repeat visits. It does NOT cache Firebase data,
-// so chats/calls still need an internet connection.
-
-const CACHE_NAME = 'whatsapp-private-shell-v1';
+const CACHE_NAME = 'whatsapp-private-shell-v3';
 const APP_SHELL = [
   './index.html',
+  './style.css',
+  './script.js',
   './manifest.json'
 ];
 
@@ -25,8 +23,6 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Only handle same-origin GET requests for the app shell; everything else
-  // (Firebase calls, external scripts) goes straight to the network.
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
